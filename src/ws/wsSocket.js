@@ -125,7 +125,6 @@ class WsSocket {
   //=========================================================================
 
   handleChatMsg(msg) {
-    console.log(msg.getContent())
     store.dispatch('handleChatMsg', msg);
   }
 

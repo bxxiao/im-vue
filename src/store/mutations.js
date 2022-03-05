@@ -1,6 +1,7 @@
 import WsSocket from "../ws/wsSocket";
 import moment from "_moment@2.29.1@moment";
 import { v4 as uuidV4 } from 'uuid'
+import {updateLastSeq} from "../utils/network/chat";
 
 export default {
   initWS(state) {
@@ -35,6 +36,18 @@ export default {
   loadChatPanelHeader(state, session) {
     state.dialogue.isInit = true;
     state.dialogue.isLoading = true;
+    /*
+    * 这里不将msgRecords置null，则在第一次从单聊切换到群聊时getters中的getAvatar函数会报错
+    * 原因：
+    * 该函数中会根据选中的会话项更新dialogue内容，这时type变为2，即群聊，
+    * 而此时msgRecords没有清空，由于type已变为2，所以此时MsgBubble中仍会渲染消息气泡，
+    * 并且渲染头像会通过getAvatar来从state.dialogue.avatarMap中获取，但此时该map为null，所以报错
+    * */
+    state.dialogue.msgRecords = null;
+    /*
+    * dialogue中的avatar目前只在单聊中有用
+    * 即作为对端消息的头像；群聊中成员有多个。
+    * */
     state.dialogue.avatar = session.avatar;
     state.dialogue.type = session.type;
     state.dialogue.name = session.name;
@@ -52,9 +65,9 @@ export default {
   * }
   * */
   setDialogueData(state, data) {
-
     let msgArray = data.msgs;
     state.dialogue.msgRecords = msgArray;
+    // 重新初始化sendSelfMsgMap
     state.dialogue.sendSelfMsgMap = null;
     state.dialogue.sendSelfMsgMap = new Map();
 
@@ -64,7 +77,6 @@ export default {
       /*
       * 从后往前遍历消息，把当前用户已发送的但未读的消息放入map（msgId —— msg）
       * */
-
       for (let i = msgArray.length - 1; i >= 0; i--) {
         // 若当前消息是对端的，则往前的消息肯定已读
         if (msgArray[i].fromUid === state.dialogue.id)
@@ -96,7 +108,18 @@ export default {
     }
     // 群聊处理
     else if (state.dialogue.type === 2) {
-
+      state.dialogue.avatarMap = new Map(Object.entries(data.avatarMap));
+      // 收到消息后更新last_msgSeq
+      let length = msgArray.length;
+      if (length > 0) {
+        let lastSeq = msgArray[length - 1].msgSeq;
+        let groupId = state.dialogue.id;
+        let uid = state.userInfo.uid;
+        updateLastSeq(lastSeq, groupId, uid).then(result => {
+          if (result.data.code !== 200)
+            console.log('更新last_msgSeq出现错误')
+        })
+      }
     }
 
     // 停止加载状态
@@ -135,36 +158,36 @@ export default {
       state.sessionList.maps.set(newSession.type + '-' + newSession.toId, newSession);
     }
 
-    // 处理单聊消息
-    if (chatMsg.getType() === 0) {
-      let type = chatMsg.getType() + 1;
-      let session = state.sessionList.maps.get(type + '-' + chatMsg.getFromuid());
+    let type = chatMsg.getType() + 1;
+    // 单聊，则id对应的就是发送者；群聊，则id对应的是群的id，即chatMsg中的toId
+    let toId = chatMsg.getType() === 0 ? chatMsg.getFromuid() : chatMsg.getToid();
+    let session = state.sessionList.maps.get(type + '-' + toId);
 
-      // 1. 更新会话项
-      session.lastMsg = chatMsg.getContent();
-      session.time = chatMsg.getTime();
-      // 2.1 对应的对话框没有打开，则其 未读 属性+1
-      if (state.selectedSession !== session.toId)
-        session.unread++;
-      // 2.2 已打开，添加消息，并发送已读包
-      else {
-        let newMsg = {
-          msgId: chatMsg.getMsgid(),
-          msgSeq: chatMsg.getMsgseq(),
-          fromUid: chatMsg.getFromuid(),
-          toId: chatMsg.getToid(),
-          type: chatMsg.getType(),
-          content: chatMsg.getContent(),
-          time: chatMsg.getTime(),
-          hasRead: true
-        };
-        state.dialogue.msgRecords.push(newMsg);
+    // 1. 更新会话项
+    session.lastMsg = chatMsg.getContent();
+    session.time = chatMsg.getTime();
+    // 2.1 对应的对话框没有打开，则其 未读 属性+1
+    if (!(state.selectedSession.type === session.type && state.selectedSession.id === session.toId))
+      session.unread++;
+    // 2.2 已打开，添加消息，对单聊消息，发送已读包(websocket)；群聊发送更新last_msgSeq的http请求
+    else {
+      let newMsg = {
+        msgId: chatMsg.getMsgid(),
+        msgSeq: chatMsg.getMsgseq(),
+        fromUid: chatMsg.getFromuid(),
+        toId: chatMsg.getToid(),
+        type: chatMsg.getType(),
+        content: chatMsg.getContent(),
+        time: chatMsg.getTime(),
+        hasRead: true
+      };
+      state.dialogue.msgRecords.push(newMsg);
+      // 单聊消息发送已读包
+      if (type === 1)
         state.wsSocket.sendMsgReadPacket(state.userInfo.uid, newMsg.fromUid, [newMsg.msgId]);
-      }
-    } else if (chatMsg.getType() === 1) {
-
-    } else {
-
+      // 群聊消息发送更新last_msgSeq的请求
+      else if (type === 2)
+        updateLastSeq(newMsg.msgSeq, newMsg.toId, state.userInfo.uid);
     }
   },
 

@@ -6,8 +6,9 @@
     <div v-for="msg in $store.state.dialogue.msgRecords">
       <!-- 左气泡 -->
       <div class="msg-item" v-if="msg.fromUid !== $store.state.userInfo.uid">
+
         <el-avatar class="chat-list-item-avatar"
-                   :src="$store.state.dialogue.avatar"
+                   :src="$store.getters.getAvatar(msg.fromUid)"
                    style="margin-right: 10px;margin-top: 13px"/>
         <div class="msg-item-content">
           <div class="msg-time msg-time-left"><i class="el-icon-time"></i><span

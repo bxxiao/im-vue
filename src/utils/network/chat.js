@@ -25,4 +25,12 @@ export function createSession(uid, toId, type) {
   )
 }
 
+export function updateLastSeq(lastSeq, groupId, uid) {
+  return post(
+    '/chat/updateLastSeq',
+    {lastSeq, groupId, uid},
+    null
+  )
+}
+
 

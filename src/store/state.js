@@ -39,7 +39,10 @@ export default {
     name: null,
     // 1-好友 2-群组
     type: null,
+    // 仅对单聊，保存对端头像
     avatar: null,
+    // 仅对群聊，保存群成员的头像（类型Map， uid——avatar）
+    avatarMap: null,
     isOnline: false,
     /*
     * 聊天记录
@@ -52,7 +55,10 @@ export default {
     * demo: {msgId, msgSeq, fromUid, toId, type, content, time, hasRead[, sendStatus]}
     * */
     msgRecords: [],
-    // 当前用户发送的未被读的消息map，用于快速定位记录，映射关系 【msgId - {msgRecords中的某条记录}】
+    /*
+    * 当前用户发送的未被读的消息map，用于收到已读确认时快速定位到消息并置为已读，
+    * 映射关系 【msgId - {msgRecords中的某条记录}】
+    * */
     sendSelfMsgMap: null,
     // 标识是否有消息正在进行重试发送
     isInCheckCirculation: false,

@@ -27,7 +27,18 @@ function checkCirculation(context) {
 export default new Vuex.Store({
   state,
   mutations,
-  getters: {},
+  getters: {
+    getAvatar(state) {
+      return uid => {
+        if (state.dialogue.type === 1)
+          return state.dialogue.avatar;
+        else if (state.dialogue.type === 2)
+          return state.dialogue.avatarMap.get(uid.toString());
+        else
+          return ''
+      }
+    }
+  },
   actions: {
     handleChatMsg(context, chatMsg) {
       let payload = {
@@ -35,25 +46,29 @@ export default new Vuex.Store({
         newSession: null
       }
       // 若会话不存在，发送请求创建会话并获取对应的头像和名字，创建新的会话项
-      if (context.state.sessionList.maps.get((chatMsg.getType() + 1) + '-' + chatMsg.getFromuid()) === undefined) {
+      let chatMsgType = chatMsg.getType();
+      // 单聊，则id对应的就是发送者；群聊，则id对应的是群的id，即chatMsg中的toId
+      let toId = chatMsgType === 0 ? chatMsg.getFromuid() : chatMsg.getToid();
+      if (context.state.sessionList.maps.get((chatMsgType + 1) + '-' + toId) === undefined) {
+
         // 对于 ChatMsg.proto，type为0表示单聊，1表示群聊；对于其它地方，1表示单聊，2表示群聊。。。所以这里type+1才能对应上
-        createSession(context.state.userInfo.uid, chatMsg.getFromuid(), chatMsg.getType() + 1).then(result => {
+        createSession(context.state.userInfo.uid, toId, chatMsgType + 1).then(result => {
           let info = result.data.data;
           let newSession = {
-            toId: chatMsg.getFromuid(),
+            toId: toId,
             name: info.name,
-            type: chatMsg.getType() + 1,
+            type: chatMsgType + 1,
             lastMsg: '',
             time: '',
             unread: 0,
             avatar: info.avatar,
           };
           payload.newSession = newSession;
+          // 注意createSession是异步的，必须在这里面commit，否则会造成payload.newSession为null
           context.commit('handleChatMsg', payload);
         });
       } else
         context.commit('handleChatMsg', payload);
-
     },
 
     /*
