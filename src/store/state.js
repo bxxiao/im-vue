@@ -57,7 +57,7 @@ export default {
     // 标识是否有消息正在进行重试发送
     isInCheckCirculation: false,
   },
-  // 正在发送中的消息
+  // 记录正在发送中的消息
   sendingMsgMap: null,
   // 发送失败的消息
   sendFailMsgMap: null,

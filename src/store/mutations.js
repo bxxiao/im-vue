@@ -182,11 +182,15 @@ export default {
       hasRead: false,
       sendStatus: -2,
     };
+    // 获取当前会话，设置信息
     let curSession = state.sessionList.maps.get(state.selectedSession.type + '-' + state.selectedSession.id);
     curSession.lastMsg = msgContent;
     curSession.time = msg.time;
-    // push进聊天记录，并放入map
+    // push进聊天记录，并放入2个map
     state.dialogue.msgRecords.push(msg);
+    /*
+    * 目前只有单聊才需要放入该map（未读已读）
+    * */
     state.dialogue.sendSelfMsgMap.set(msg.msgId, msg);
     state.sendingMsgMap.set(msg.msgId, msg);
     // WebSocket发送消息
@@ -210,7 +214,7 @@ export default {
       let msg = state.sendingMsgMap.get(msgIds[i]);
       if (msg !== undefined) {
         console.log('resend: ' + msg.content)
-        state.wsSocket.sendChatMsgPacket(msg.type, msg.fromUid, msg.toId, msg.content, msg.msgId, msg.time);
+        state.wsSocket.sendChatMsgPacket(msg.type - 1, msg.fromUid, msg.toId, msg.content, msg.msgId, msg.time);
       }
     }
   },
@@ -239,7 +243,7 @@ export default {
     // 需要重发的消息id
     let msgIds = [];
     for (let [id, msg] of state.sendingMsgMap) {
-      // 状态为正在发送，进行第一次重发
+      // 状态为正在发送（即过了2s后该消息还在发送，视为发送失败），进行第一次重发
       if (msg.sendStatus === -2) {
         // 置1表示已重发了1次
         msg.sendStatus = 1;
@@ -257,7 +261,6 @@ export default {
           state.sendFailMsgMap.set(msg.msgId, msg);
           console.log(msg.content, ' send failed')
         }
-        // this.commit('setMsgSendFail', id);
         else {
           msg.sendStatus++;
           msgIds.push(id);
