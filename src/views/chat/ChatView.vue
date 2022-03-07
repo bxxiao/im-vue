@@ -94,6 +94,7 @@ export default {
     clickSession(session) {
       if (this.$store.state.selectedSession.id === session.toId && this.$store.state.selectedSession.type === session.type)
         return;
+      this.$refs.chatPanel.firstToTop = true;
       // 会话项中保存的id、头像等信息设置在dialogue中
       this.$store.commit('loadChatPanelHeader', session);
       // 拉取聊天记录(http)
@@ -126,8 +127,9 @@ export default {
   * */
   mounted() {
     let token = localStorage.getItem('JWT');
-    let uid = localStorage.getItem('UID');
-    if (token !== null) {
+    if (token !== null && !this.$store.state.sessionList.hasInit) {
+      console.log('mounted...')
+      let uid = localStorage.getItem('UID');
       getSessionList(uid).then(result => {
         // TODO: 返回的数据新增当前用户信息
         if (result === undefined)
@@ -137,7 +139,7 @@ export default {
           this.$store.commit('initWS');
         }
       })
-    } else {
+    } else if (token === null) {
       this.$router.push('/login')
     }
   }

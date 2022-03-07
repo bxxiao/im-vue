@@ -33,6 +33,18 @@ export default {
     isInit: false,
     // 是否正在加载
     isLoading: false,
+    /*
+    * 该变量用来防止上滑加载消息后消息列表滑到底
+    * 在滑到顶加载消息后，将该值置true，消息更新后触发MsgBubble的updated，执行ChatPanel中scrollToBottom，
+    * 若其判断afterUnshiftMsg是true，则不执行滚动到底，并将afterUnshiftMsg置false
+    * */
+    afterUnshiftMsg: false,
+    /*
+    * 上滑拉取不到消息时置true，表示没消息了
+    * */
+    noMoreMsg: false,
+    // 表示上滑后正在加载消息
+    isLoadingTop: false,
     // 好友或群组的id
     id: null,
     // 好友或群组的名字

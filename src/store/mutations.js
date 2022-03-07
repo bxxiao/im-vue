@@ -44,6 +44,8 @@ export default {
     * 并且渲染头像会通过getAvatar来从state.dialogue.avatarMap中获取，但此时该map为null，所以报错
     * */
     state.dialogue.msgRecords = null;
+    state.dialogue.afterUnshiftMsg = false;
+    state.dialogue.noMoreMsg = false;
     /*
     * dialogue中的avatar目前只在单聊中有用
     * 即作为对端消息的头像；群聊中成员有多个。
@@ -302,6 +304,28 @@ export default {
 
   setCirculationTrue(state) {
     state.isInCheckCirculation = true;
-  }
+  },
 
+  unShiftMsgs(state, msgArr) {
+    let msgRecords = state.dialogue.msgRecords;
+    if (msgArr === null)
+      state.dialogue.noMoreMsg = true;
+    else if (msgArr !== null && msgArr.length > 0) {
+      state.dialogue.afterUnshiftMsg = true;
+      let concat = msgArr.concat(msgRecords);
+      state.dialogue.msgRecords = concat;
+      // while (msgArr.length > 0) {
+      //   state.dialogue.msgRecords.unshift(msgArr.pop())
+      // }
+    }
+    state.dialogue.isLoadingTop = false;
+  },
+
+  changeAfterUnshiftMsg(state) {
+    state.dialogue.afterUnshiftMsg = false;
+  },
+
+  dialogueLoadingTop(state) {
+    state.dialogue.isLoadingTop = true;
+  }
 }

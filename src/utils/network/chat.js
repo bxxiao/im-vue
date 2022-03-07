@@ -33,4 +33,12 @@ export function updateLastSeq(lastSeq, groupId, uid) {
   )
 }
 
+export function loadMsgs(uid, toId, type, msgSeq) {
+  return get(
+    '/chat/loadMsgs',
+    {uid, toId, type, msgSeq},
+    null
+  )
+}
+
 

@@ -28,6 +28,11 @@
 
       <!-- 消息记录 -->
       <el-main  style="height: 70%;" class="panel-main" id="chat-list">
+        <div v-if="$store.state.dialogue.isLoadingTop" style="width: 100%;height: 20px;" v-loading="loading" element-loading-spinner="el-icon-loading">
+        </div>
+        <div v-if="$store.state.dialogue.noMoreMsg" style="display: flex;justify-content: center;font-size: 8px;color: #C0C4CC">
+          <span>无了无了，别滑了</span>
+        </div>
         <MsgBubble @msgMounted="bindScrollEvent" @msgUpdated="scrollToBottom"></MsgBubble>
       </el-main>
 
@@ -76,20 +81,37 @@ export default {
   data() {
     return {
       inputContent: "",
+      // id=chat-list 对应的DOM元素
       chatListDOM: null,
+      // 标记chatListDOM中的滚动条是不是第一次滑到顶
+      firstToTop: true,
+      loading: false,
     }
   },
   methods: {
-    // 手动滚动到底部
+    // 滚动到底部
     scrollToBottom() {
-      let panel = document.getElementById('chat-list');
-      panel.scrollTop = panel.scrollHeight;
+      if (this.$store.state.dialogue.afterUnshiftMsg) {
+        this.chatListDOM.scrollTop = 180;
+        this.$store.commit('changeAfterUnshiftMsg');
+      }
+      else
+        this.chatListDOM.scrollTop = this.chatListDOM.scrollHeight;
     },
 
     // 监听滚动到顶部
     scrollListener() {
-      if (this.chatListDOM.scrollTop === 0)
+      // 第一次滚到顶不触发，否则触发，防止chatList刚加载时触发该部分代码
+      // 再点击会话项切换聊天界面时，firstToTop会重新置true
+      if (this.chatListDOM.scrollTop === 0 && !this.firstToTop) {
         console.log('scroll to top')
+        if (!this.$store.state.dialogue.noMoreMsg)
+          this.$store.dispatch('loadMsgs');
+      }
+
+      // 滚动了之后firstToTop置false，即后面再滚到顶可以触发
+      if (this.chatListDOM.scrollTop !== 0)
+        this.firstToTop = false;
     },
 
     /*
@@ -103,7 +125,7 @@ export default {
       * 通过导航栏路由到其它页面，再回来时，不会触发MsgBubble的updated函数（没有数据更新）
       * 但会触发其mounted函数，在这里让滚动条滑动到底
       * */
-      this.scrollToBottom()
+      // this.scrollToBottom()
     },
 
     sendMsg() {
