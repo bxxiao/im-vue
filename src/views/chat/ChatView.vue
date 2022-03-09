@@ -128,7 +128,6 @@ export default {
   mounted() {
     let token = localStorage.getItem('JWT');
     if (token !== null && !this.$store.state.sessionList.hasInit) {
-      console.log('mounted...')
       let uid = localStorage.getItem('UID');
       getSessionList(uid).then(result => {
         // TODO: 返回的数据新增当前用户信息

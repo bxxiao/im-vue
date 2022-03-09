@@ -327,5 +327,10 @@ export default {
 
   dialogueLoadingTop(state) {
     state.dialogue.isLoadingTop = true;
+  },
+
+  closeWebSocket(state) {
+    state.wsSocket.logout();
+    state.wsSocket = null;
   }
 }

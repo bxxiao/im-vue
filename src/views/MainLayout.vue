@@ -3,7 +3,7 @@
     <!-- 侧边导航栏 -->
     <el-aside class="el-aside" width="" style="height: 100%;margin: 0;padding: 0">
       <el-menu :collapse-transition="false" default-active="1" class="el-menu-vertical-demo" background-color="#545c64" :collapse="isCollapse"
-               style="height: 100%;">
+               style="height: 100%;position: relative">
         <div>
           <img style="border-radius: 50%;width: 80%;height: 80%;padding: 10%;" :src="$store.state.userInfo.avatar">
         </div>
@@ -25,6 +25,9 @@
             <span slot="title">设置</span>
           </el-menu-item>
         </router-link>
+        <div style="position: absolute;bottom: 5%;font-size: 15px;color: #C0C4CC;left: 10%;width: 80%">
+          <div @click="logout">退出 <span class="el-icon-error"></span></div>
+        </div>
       </el-menu>
     </el-aside>
 
@@ -35,6 +38,7 @@
 </template>
 
 <script>
+
 export default {
   name: "MainLayout",
   data() {
@@ -42,6 +46,16 @@ export default {
       isCollapse: true
     };
   },
+  methods: {
+    logout() {
+      localStorage.removeItem("JWT");
+      localStorage.removeItem("UID")
+      this.$store.commit('closeWebSocket');
+      this.$router.push('/login')
+      // 刷新页面重置vuex state
+      window.location.reload()
+    }
+  }
 }
 </script>
 

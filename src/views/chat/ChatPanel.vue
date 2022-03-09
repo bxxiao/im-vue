@@ -28,10 +28,10 @@
 
       <!-- 消息记录 -->
       <el-main  style="height: 70%;" class="panel-main" id="chat-list">
-        <div v-if="$store.state.dialogue.isLoadingTop" style="width: 100%;height: 20px;" v-loading="loading" element-loading-spinner="el-icon-loading">
+        <div v-if="$store.state.dialogue.isLoadingTop" style="width: 100%;height: 20px;" v-loading="$store.state.dialogue.isLoadingTop" element-loading-spinner="el-icon-loading">
         </div>
         <div v-if="$store.state.dialogue.noMoreMsg" style="display: flex;justify-content: center;font-size: 8px;color: #C0C4CC">
-          <span>无了无了，别滑了</span>
+          <span>没有更多消息了</span>
         </div>
         <MsgBubble @msgMounted="bindScrollEvent" @msgUpdated="scrollToBottom"></MsgBubble>
       </el-main>
@@ -83,6 +83,8 @@ export default {
       inputContent: "",
       // id=chat-list 对应的DOM元素
       chatListDOM: null,
+      // 上滑加载新消息之前的滚动条高度，用于上滑加载消息后将滚动条定位到加载前的第一条消息的位置
+      lastScrollHeight: null,
       // 标记chatListDOM中的滚动条是不是第一次滑到顶
       firstToTop: true,
       loading: false,
@@ -92,10 +94,18 @@ export default {
     // 滚动到底部
     scrollToBottom() {
       if (this.$store.state.dialogue.afterUnshiftMsg) {
-        this.chatListDOM.scrollTop = 180;
+        /*
+        * push消息后，将当前的scrollHeight减去加载消息前的高度（lastScrollHeight），
+        * 就可以滚动到加载消息前的第一条消息
+        * */
+        this.chatListDOM.scrollTop = this.chatListDOM.scrollHeight - this.lastScrollHeight;
         this.$store.commit('changeAfterUnshiftMsg');
       }
       else
+        /*
+        * scrollTop是滚动块距离滚动条顶部的距离，scrollHeight是整个滚动条的高度，
+        * 将scrollTop设为scrollHeight，就滚到底？
+        * */
         this.chatListDOM.scrollTop = this.chatListDOM.scrollHeight;
     },
 
@@ -105,8 +115,10 @@ export default {
       // 再点击会话项切换聊天界面时，firstToTop会重新置true
       if (this.chatListDOM.scrollTop === 0 && !this.firstToTop) {
         console.log('scroll to top')
-        if (!this.$store.state.dialogue.noMoreMsg)
+        if (!this.$store.state.dialogue.noMoreMsg) {
+          this.lastScrollHeight = this.chatListDOM.scrollHeight;
           this.$store.dispatch('loadMsgs');
+        }
       }
 
       // 滚动了之后firstToTop置false，即后面再滚到顶可以触发

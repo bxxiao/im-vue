@@ -128,6 +128,10 @@ class WsSocket {
     store.dispatch('handleChatMsg', msg);
   }
 
+  logout() {
+    this.socket.close();
+    this.socket = null;
+  }
 
 }
 
