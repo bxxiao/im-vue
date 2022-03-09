@@ -168,28 +168,47 @@ class WsSocket {
   * */
   // 标志在心跳检测到达之前，是否通过socket发送过数据
   hasSendPacket = false;
+  /*
+  * 标识是否正在进行心跳检测，用以避免多次启动心跳检测，也可以理解为一个启动心跳的锁
+  *
+  * */
+  isHeartBeating = false;
   idleHeartBeat() {
+    /*
+    * 该函数只能执行一次，否则会有多个heartBeating函数同时在循环
+    * 当断线重连在heartBeating的setTimeout指定的时间内完成时，就会重新启动一个heartBeating函数
+    * 通过isHeartBeating标志来防止多次执行
+    * */
+    if (this.isHeartBeating)
+      return;
+    this.isHeartBeating = true;
     let thisRef = this;
-    setTimeout(() => {
-      // 若socket连接正常
-      if (thisRef.isSocketOpen) {
+    let heartBeating = () => {
+      setTimeout(() => {
+        // 若socket连接正常
+        if (thisRef.isSocketOpen) {
 
-        // 在检测到达期间没有发送数据，则要发送心跳包
-        if (!thisRef.hasSendPacket) {
-          console.log('send ping...')
-          thisRef.sendWS(111, null);
+          // 在检测到达期间没有发送数据，则要发送心跳包
+          if (!thisRef.hasSendPacket) {
+            console.log('send ping...')
+            thisRef.sendWS(111, null);
+          }
+
+          /*
+          * 若检测期间有发送数据，则该标志会在sendWS中置true
+          * 若没有并在这里发了一个ping包，也会在sendWS中置true
+          * 2种情况都要置false
+          * */
+          thisRef.hasSendPacket = false;
+          heartBeating();
+        } else {
+          thisRef.hasSendPacket = false;
+          thisRef.isHeartBeating = false;
         }
+      }, 20000)
+    };
 
-        /*
-        * 若检测期间有发送数据，则该标志会在sendWS中置true
-        * 若没有并在这里发了一个ping包，也会在sendWS中置true
-        * 2种情况都要置false
-        * */
-        thisRef.hasSendPacket = false;
-        thisRef.idleHeartBeat();
-      } else
-        thisRef.hasSendPacket = false;
-    }, 20000)
+    heartBeating();
   }
 
   /*
