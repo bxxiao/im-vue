@@ -84,6 +84,7 @@ class WsSocket {
       // pong回应
       case 222:
         console.log('receive pong from server')
+        this.hasReceivePong = true;
         break;
       case 401:
         console.log('token 错误，请重新登录');
@@ -162,48 +163,62 @@ class WsSocket {
   //============================心跳、断线重连>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   /*
   * 心跳机制：
-  *   在连接正常的情况下，每过若干秒进行一次检测，若在此期间发送过数据（hasSendPacket为true），
-  *   则不用发送心跳包，否则发送一个心跳包
+  *   在连接正常的情况下，每过若干秒发送一个心跳包，
+  *   并检测是否收到pong回应，若收到则正常执行进程；否则记录未收到次数
+  *   当达到指定次数时，视为连接已断开，主动关闭连接，触发自动重连
   *   若连接不正常（isSocketOpen为false），则停止心跳检测
   * */
-  // 标志在心跳检测到达之前，是否通过socket发送过数据
-  hasSendPacket = false;
+  // 标识在心跳检测的计时期间，是否收到pong回应，初始置true
+  hasReceivePong = true;
+  // 没用收到pong回应的次数
+  unReceivePongCount = 0;
   /*
   * 标识是否正在进行心跳检测，用以避免多次启动心跳检测，也可以理解为一个启动心跳的锁
   *
   * */
-  isHeartBeating = false;
+  inHeartBeating = false;
   idleHeartBeat() {
     /*
     * 该函数只能执行一次，否则会有多个heartBeating函数同时在循环
     * 当断线重连在heartBeating的setTimeout指定的时间内完成时，就会重新启动一个heartBeating函数
     * 通过isHeartBeating标志来防止多次执行
     * */
-    if (this.isHeartBeating)
+    if (this.inHeartBeating)
       return;
-    this.isHeartBeating = true;
+    this.inHeartBeating = true;
     let thisRef = this;
     let heartBeating = () => {
       setTimeout(() => {
         // 若socket连接正常
         if (thisRef.isSocketOpen) {
-
-          // 在检测到达期间没有发送数据，则要发送心跳包
-          if (!thisRef.hasSendPacket) {
-            console.log('send ping...')
-            thisRef.sendWS(111, null);
+          // 若收到pong回应，则正常发送ping包
+          if (thisRef.hasReceivePong) {
+            thisRef.unReceivePongCount = 0;
+          } else {
+            /*
+            * 没有收到pong回应，计数，若达到指定次数，则视为连接已断开，
+            * 主动关闭，触发重连
+            * */
+            thisRef.unReceivePongCount++;
+            if (thisRef.unReceivePongCount === 2) {
+              console.log('服务端长时间无回应，连接已断开...');
+              thisRef.socket.close();
+              // 重置2个变量
+              thisRef.hasReceivePong = true;
+              thisRef.unReceivePongCount = 0;
+              // 释放锁
+              thisRef.inHeartBeating = false;
+              return;
+            }
           }
 
-          /*
-          * 若检测期间有发送数据，则该标志会在sendWS中置true
-          * 若没有并在这里发了一个ping包，也会在sendWS中置true
-          * 2种情况都要置false
-          * */
-          thisRef.hasSendPacket = false;
+          // 发送ping，进入下一个循环
+          thisRef.hasReceivePong = false;
+          console.log('send ping...');
+          thisRef.sendWS(111, null);
           heartBeating();
         } else {
-          thisRef.hasSendPacket = false;
-          thisRef.isHeartBeating = false;
+          thisRef.inHeartBeating = false;
         }
       }, 20000)
     };
