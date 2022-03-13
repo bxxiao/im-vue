@@ -4,9 +4,18 @@ import { v4 as uuidV4 } from 'uuid'
 import {updateLastSeq} from "../utils/network/chat";
 
 export default {
+  initUserInfo(state, info) {
+    state.userInfo.uid = info.id;
+    state.userInfo.name = info.name;
+    state.userInfo.avatar = info.avatar;
+    state.userInfo.phone = info.phone;
+  },
+
   initWS(state) {
-    state.wsSocket = new WsSocket();
-    state.wsSocket.initWebSocket();
+    if (state.wsSocket === null) {
+      state.wsSocket = new WsSocket();
+      state.wsSocket.initWebSocket();
+    }
   },
 
   /*

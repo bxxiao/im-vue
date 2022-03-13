@@ -34,8 +34,25 @@ const routes = [
 
       {
         path: 'friend',
-        name: '联系人',
-        component: () => import('../views/friend/FriendView')
+        component: () => import('../views/friend/FriendView'),
+        children: [
+          {
+            path: '',
+            redirect: 'apply'
+          },
+          {
+            path: 'apply',
+            component: () => import('../views/friend/Apply')
+          },
+          {
+            path: 'friendList',
+            component: () => import('../views/friend/FriendList')
+          },
+          {
+            path: 'groupList',
+            component: () => import('../views/friend/GroupList')
+          }
+        ]
       },
 
       {
