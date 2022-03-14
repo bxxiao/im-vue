@@ -35,6 +35,7 @@
                    v-if="$store.state.sessionList.hasInit">
             <!-- 会话项 -->
             <div @click="clickSession(session)" class="chat-item"
+                 :ref="getSessionRef(session)"
                  :class="{'active-chat-item': $store.state.selectedSession.id === session.toId && $store.state.selectedSession.type === session.type}"
                  v-for="session in $store.state.sessionList.list">
               <el-row style="height: 100%">
@@ -120,6 +121,32 @@ export default {
       else
         return msg.substring(0, 11) + (msg.length > 10 ? '...' : '');
     },
+
+    /*
+    * 计算会话项的ref属性值
+    * */
+    getSessionRef(session) {
+      let id = session.type + '-' + session.toId;
+      return 'session' + id;
+    },
+
+    clickSessionAfterRoute() {
+      /*
+      * 在好友或群聊列表点击发送信息时会通过路由传送参数，在这里触发对应会话项的点击事件进入聊天
+      * */
+      let refName = this.$route.params.sessionRef;
+      if (refName !== undefined && refName != null) {
+        /*
+        * 这里this.$refs[refName]获取到的是个数组（原因不明），第一个元素就是对应的dom对象，执行其click事件
+        * （若明确ref值，则可以直接 this.$refs.refName获取，这里是动态绑定的，所以用方括号语法）
+        * TODO：判断会话项是否存在，若不存在则先创建会话项
+        * */
+        let sessionDOM = this.$refs[refName];
+        sessionDOM[0].click();
+        // 点击后要置空，防止该函数重复执行
+        this.$route.params.sessionRef = null;
+      }
+    }
   },
 
   /*
@@ -137,7 +164,17 @@ export default {
       })
     } else if (token === null) {
       this.$router.push('/login')
-    }
+    } else
+      /*
+      * 只有页面已被加载过才能进行会话项点击，若没有加载过（比如在friends页面刷新后再点击发送消息跳到该界面
+      * 这时需要先通过getSessionList加载数据后触发updated函数，再执行该函数
+      * */
+      this.clickSessionAfterRoute();
+  },
+
+
+  updated() {
+    this.clickSessionAfterRoute();
   }
 }
 </script>

@@ -2,29 +2,28 @@
   <el-container style="height: 100%">
     <!-- 侧边导航栏 -->
     <el-aside class="el-aside" width="" style="height: 100%;margin: 0;padding: 0">
-      <el-menu :collapse-transition="false" default-active="1" class="el-menu-vertical-demo" background-color="#545c64" :collapse="isCollapse"
+      <el-menu :collapse-transition="false"
+               :default-active="activeItem"
+               class="el-menu-vertical-demo"
+               background-color="#545c64"
+               :collapse="isCollapse"
+               :router="true"
                style="height: 100%;position: relative">
         <div>
           <img style="border-radius: 50%;width: 80%;height: 80%;padding: 10%;" :src="$store.state.userInfo.avatar">
         </div>
-        <router-link to="/main/chat">
-          <el-menu-item index="1" >
-            <i class="el-icon-chat-dot-square"></i>
-            <span slot="title">消息</span>
-          </el-menu-item>
-        </router-link>
-        <router-link to="/main/friend">
-          <el-menu-item index="2">
-            <i class="el-icon-user-solid"></i>
-            <span slot="title">联系人</span>
-          </el-menu-item>
-        </router-link>
-        <router-link to="/main/settings">
-          <el-menu-item index="3">
-            <i class="el-icon-setting"></i>
-            <span slot="title">设置</span>
-          </el-menu-item>
-        </router-link>
+        <el-menu-item index="/main/chat">
+          <i class="el-icon-chat-dot-square"></i>
+          <span slot="title">消息</span>
+        </el-menu-item>
+        <el-menu-item index="/main/friend">
+          <i class="el-icon-user-solid"></i>
+          <span slot="title">联系人</span>
+        </el-menu-item>
+        <el-menu-item index="/main/settings">
+          <i class="el-icon-setting"></i>
+          <span slot="title">设置</span>
+        </el-menu-item>
         <div style="position: absolute;bottom: 5%;font-size: 15px;color: #C0C4CC;left: 10%;width: 80%">
           <div @click="logout">退出 <span class="el-icon-error"></span></div>
         </div>
@@ -46,6 +45,20 @@ export default {
       isCollapse: true
     };
   },
+
+  computed: {
+    // 返回路径，让el-menu根据该路径选中对应项
+    activeItem() {
+      let part = this.$route.path.substring(6);
+      if (part.startsWith('chat'))
+        return '/main/chat'
+      else if (part.startsWith('friend'))
+        return '/main/friend'
+      else if (part.startsWith('settings'))
+        return '/main/settings'
+    }
+  },
+
   methods: {
     logout() {
       localStorage.removeItem("JWT");

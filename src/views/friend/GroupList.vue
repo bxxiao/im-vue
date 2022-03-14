@@ -1,23 +1,24 @@
 <template>
   <el-table
-      :data="tableData"
+      :data="groups"
       style="width: 100%">
     <el-table-column
         label="群聊列表">
       <template slot-scope="scope">
-        <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.num)" @mouseleave="itemMouseleave">
-          <el-avatar style="margin: 2px 5px" src="https://pic1.zhimg.com/v2-48fdaebd7895bdffe22448e5193c62fa_r.jpg"/>
+        <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.id)" @mouseleave="itemMouseleave">
+          <el-avatar style="margin: 2px 5px" :src="scope.row.avatar"/>
           <div style="width: 80%;">
             <div>
-              <span style="font-size: 14px;margin-right: 5px">四手霸王</span>
-              <el-tag size="mini" type="warning">群主</el-tag>
+              <span style="font-size: 14px;margin-right: 5px">{{scope.row.name}}</span>
+              <!--暂时不搞-->
+              <!--<el-tag size="mini" type="warning">群主</el-tag>-->
             </div>
             <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
-              我是这条街最靓的崽
+              ------
             </div>
           </div>
-          <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.num">
-            <el-button size="mini" type="primary" icon="el-icon-s-promotion">发送消息</el-button>
+          <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.id">
+            <el-button size="mini" type="primary" icon="el-icon-s-promotion" @click="openChatPage(scope.row.id)">发送消息</el-button>
             <el-button size="mini" type="danger" icon="el-icon-delete">退出群聊</el-button>
           </div>
         </div>
@@ -27,31 +28,63 @@
 </template>
 
 <script>
+import {listGroups} from "../../utils/network/friend";
+
 export default {
   name: "GroupList",
   data() {
     return {
-      tableData: [{
-        num: 1,
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        num: 2,
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }],
+      // {id name avatar}
+      groups: null,
       mouseoverNum: null,
+      inLoading: false,
     }
   },
   methods: {
+    openChatPage(groupId) {
+      let id = 'session' + 2 + '-' + groupId;
+      this.$router.push({
+        name: '聊天',
+        params: {
+          sessionRef: id
+        }
+      })
+    },
+
+    loadPage() {
+      this.inLoading = true;
+      let uid = this.$store.state.userInfo.uid;
+      /*
+      * 若uid为空（可能是页面刷新），等半s后再重新获取uid（等待FriendView的mounted函数加载完userinfo）发送请求
+      * */
+      if (uid === null) {
+        setTimeout(() => {
+          uid = this.$store.state.userInfo.uid;
+          this.loadGroups(uid);
+        }, 500)
+      } else
+        this.loadGroups(uid)
+    },
+
+    loadGroups(uid) {
+      listGroups(uid).then(result => {
+        if (result !== undefined && result.data.code === 200) {
+          this.groups = result.data.data;
+          this.inLoading = false;
+        }
+      })
+    },
+
     itemMouseover(num) {
       this.mouseoverNum = num;
     },
     itemMouseleave() {
       this.mouseoverNum = null;
     }
+  },
+
+  mounted() {
+    this.loadPage()
   }
 }
 </script>

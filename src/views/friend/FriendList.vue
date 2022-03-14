@@ -1,58 +1,99 @@
 <template>
   <el-table
-      :data="tableData"
-      style="width: 100%">
-    <el-table-column
-        label="好友列表">
-      <template slot-scope="scope">
-        <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.num)" @mouseleave="itemMouseleave">
-          <el-avatar style="margin: 2px 5px" src="https://pic1.zhimg.com/v2-48fdaebd7895bdffe22448e5193c62fa_r.jpg"/>
-          <div style="width: 80%;">
-            <div>
-              <span style="font-size: 14px;margin-right: 5px">四手霸王</span>
-              <el-tag size="mini" >在线</el-tag>
-              <el-tag size="mini" type="info">离线</el-tag>
+        :data="friends"
+        style="width: 100%"
+        v-loading="inLoading">
+      <el-table-column
+          label="好友列表">
+        <template slot-scope="scope">
+          <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.id)" @mouseleave="itemMouseleave">
+            <el-avatar style="margin: 2px 5px" :src="scope.row.avatar"/>
+            <div style="width: 80%;">
+              <div>
+                <span style="font-size: 14px;margin-right: 5px">{{scope.row.name}}</span>
+                <el-tag size="mini" v-if="scope.row.isOnline">在线</el-tag>
+                <el-tag size="mini" type="info" v-else>离线</el-tag>
+              </div>
+              <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
+                {{scope.row.intro}}
+              </div>
             </div>
-            <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
-              我是这条街最靓的崽
+            <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.id">
+              <el-button size="mini" type="primary" icon="el-icon-s-promotion" @click="openChatPage(scope.row.id)">发送消息</el-button>
+              <el-button size="mini" type="danger" icon="el-icon-delete">删除好友</el-button>
             </div>
           </div>
-          <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.num">
-            <el-button size="mini" type="primary" icon="el-icon-s-promotion">发送消息</el-button>
-            <el-button size="mini" type="danger" icon="el-icon-delete">删除好友</el-button>
-          </div>
-        </div>
-      </template>
-    </el-table-column>
-  </el-table>
+        </template>
+      </el-table-column>
+    </el-table>
 </template>
 
 <script>
+import {listFriends} from "../../utils/network/friend";
+
 export default {
   name: "FriendList",
   data() {
     return {
-      tableData: [{
-        num: 1,
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        num: 2,
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }],
+      // 元素属性：{id name avatar intro isOnline}
+      friends: null,
       mouseoverNum: null,
+      inLoading: false,
+      btnRef: 'btn2',
+      str: 'str',
     }
   },
   methods: {
+    loadPage() {
+      this.inLoading = true;
+      let uid = this.$store.state.userInfo.uid;
+      /*
+      * 若uid为空（可能是页面刷新），等半s后再重新获取uid（等待FriendView的mounted函数加载完userinfo）发送请求
+      * */
+      if (uid === null) {
+        setTimeout(() => {
+          uid = this.$store.state.userInfo.uid;
+          this.loadFriends(uid);
+        }, 500)
+      } else
+        this.loadFriends(uid)
+    },
+
+    loadFriends(uid) {
+      listFriends(uid).then(result => {
+        if (result !== undefined && result.data.code === 200) {
+          this.friends = result.data.data;
+          this.inLoading = false;
+        }
+      })
+    },
+
     itemMouseover(num) {
       this.mouseoverNum = num;
     },
     itemMouseleave() {
       this.mouseoverNum = null;
+    },
+
+    /*
+    * 跳转到ChatView界面并点击对应会话项
+    * 在ChatView的会话项列表中，会给每个项动态绑定一个ref属性，值为 【session[type]-[id]】
+    * 这里通过跳转路由传参，将对应会话的ref值传过去
+    * ChatView中通过this.$route.params获取到参数值，然后执行点击事件
+    * */
+    openChatPage(uid) {
+      let id = 'session' + 1 + '-' + uid;
+      this.$router.push({
+        name: '聊天',
+        params: {
+          sessionRef: id
+        }
+      })
     }
+  },
+
+  mounted() {
+    this.loadPage();
   }
 }
 </script>

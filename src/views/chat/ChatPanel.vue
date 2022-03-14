@@ -114,7 +114,6 @@ export default {
       // 第一次滚到顶不触发，否则触发，防止chatList刚加载时触发该部分代码
       // 再点击会话项切换聊天界面时，firstToTop会重新置true
       if (this.chatListDOM.scrollTop === 0 && !this.firstToTop) {
-        console.log('scroll to top')
         if (!this.$store.state.dialogue.noMoreMsg) {
           this.lastScrollHeight = this.chatListDOM.scrollHeight;
           this.$store.dispatch('loadMsgs');
@@ -137,7 +136,7 @@ export default {
       * 通过导航栏路由到其它页面，再回来时，不会触发MsgBubble的updated函数（没有数据更新）
       * 但会触发其mounted函数，在这里让滚动条滑动到底
       * */
-      // this.scrollToBottom()
+      this.scrollToBottom()
     },
 
     sendMsg() {

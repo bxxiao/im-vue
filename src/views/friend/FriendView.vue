@@ -2,27 +2,22 @@
   <el-container style="height: 100%;width: 100%;padding: 0;margin: 0">
     <el-aside style="height: 100%;padding: 0;margin: 0;width: 13%">
       <el-menu
-          default-active="1"
+          :default-active="activeItem"
+          :router="true"
           class="el-menu-vertical-demo"
           style="height: 100%;">
-        <router-link to="/main/friend/apply">
-          <el-menu-item index="1">
-            <!--<i class="el-icon-menu"></i>-->
-            <span slot="title">新的联系人</span>
-          </el-menu-item>
-        </router-link>
-        <router-link to="/main/friend/friendList">
-          <el-menu-item index="2">
-            <!--<i class="el-icon-setting"></i>-->
-            <span slot="title">我的好友</span>
-          </el-menu-item>
-        </router-link>
-        <router-link to="/main/friend/groupList">
-          <el-menu-item index="3">
-            <!--<i class="el-icon-setting"></i>-->
-            <span slot="title">我的群组</span>
-          </el-menu-item>
-        </router-link>
+        <el-menu-item index="/main/friend/apply">
+          <!--<i class="el-icon-menu"></i>-->
+          <span slot="title">新的联系人</span>
+        </el-menu-item>
+        <el-menu-item index="/main/friend/friendList">
+          <!--<i class="el-icon-setting"></i>-->
+          <span slot="title">我的好友</span>
+        </el-menu-item>
+        <el-menu-item index="/main/friend/groupList">
+          <!--<i class="el-icon-setting"></i>-->
+          <span slot="title">我的群组</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -44,6 +39,14 @@ export default {
       position: 'left',
     }
   },
+
+  computed: {
+    // 返回当前路径，让el-menu根据该路径选中对应项
+    activeItem() {
+      return this.$route.path;
+    }
+  },
+
   mounted() {
     let token = localStorage.getItem('JWT');
     /*
@@ -65,7 +68,11 @@ export default {
 </script>
 
 <style scoped>
-a{ text-decoration:none}
+a {
+  text-decoration: none
+}
 
-a:hover{ text-decoration:none}
+a:hover {
+  text-decoration: none
+}
 </style>
