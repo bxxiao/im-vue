@@ -49,7 +49,9 @@
                     <!-- 标识是群聊 -->
                     <el-tag size="mini" v-if="session.type == 2">群组</el-tag>
                     <el-badge :value="session.unread" :max="maxValue" :hidden="session.unread == 0"/>
-                    <span style="float: right;margin-right: 4px;" class="chat-item-time">{{ parseTime(session.time) }}</span>
+                    <span style="float: right;margin-right: 4px;" class="chat-item-time">{{
+                        parseTime(session.time)
+                      }}</span>
                   </div>
                   <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
                     {{ parseLastMsg(session.lastMsg) }}
@@ -101,8 +103,6 @@ export default {
       getDialogueData(this.$store.state.userInfo.uid, session.toId, session.type).then(result => {
         if (result.data.code === 200) {
           this.$store.commit('setDialogueData', result.data.data);
-        } else {
-          console.log('服务器出错')
         }
       })
     },
@@ -130,10 +130,7 @@ export default {
     if (token !== null && !this.$store.state.sessionList.hasInit) {
       let uid = localStorage.getItem('UID');
       getSessionList(uid).then(result => {
-        // TODO: 返回的数据新增当前用户信息
-        if (result === undefined)
-          console.log('出错');
-        else if (result.status === 200 && result.data.code == 200) {
+        if (result !== undefined && result.data.code == 200) {
           this.$store.commit('initSessionList', result.data.data);
           this.$store.commit('initWS');
         }
@@ -154,6 +151,7 @@ export default {
   font-size: 14px;
   color: #909399;
 }
+
 .chat-item {
   height: 60px;
   padding-top: 2px;

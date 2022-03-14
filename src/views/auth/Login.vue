@@ -36,11 +36,6 @@ export default {
           localStorage.setItem('JWT', userDTO.token);
           localStorage.setItem('UID', userDTO.id);
           this.$router.push('/main')
-        } else {
-          this.$notify.error({
-            title: '登录失败',
-            message: '账号或密码错误'
-          });
         }
       }).catch(err => {
         this.$notify.error({

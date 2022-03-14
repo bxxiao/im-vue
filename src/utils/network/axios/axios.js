@@ -33,6 +33,9 @@ request.interceptors.request.use(config => {
 // 响应拦截
 request.interceptors.response.use(res => {
   // 返回结果：返回的结果就是下面then函数中的res
+  if (res.data !== null && res.data !== undefined && res.data.code !== 200) {
+    vueRef.$message.error(res.data.message);
+  }
   return res;
 }, err => {
   if (err.response.status === 403) {

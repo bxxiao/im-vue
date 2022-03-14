@@ -78,11 +78,6 @@ export default {
         if (result !== undefined && result !== null && result.data.code === 200) {
           this.applies = result.data.data;
           this.inLoading = false;
-        } else {
-          this.$notify.error({
-            title: '错误',
-            message: '请求错误，请刷新或稍后再试'
-          });
         }
       })
     },
@@ -92,7 +87,7 @@ export default {
     * */
     handleApply(id, type) {
       dealApply(id, type).then(result => {
-        if (result.data.code === 200) {
+        if (result !== undefined && result.data.code === 200) {
           this.$message({
             message: '操作成功',
             type: 'success'
