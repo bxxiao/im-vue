@@ -48,4 +48,10 @@ export function getGroupInfo(uid, groupId) {
   )
 }
 
+export function searchUserAndGroup(keyword) {
+  return get(
+      '/friend/search',
+      {keyword}
+  )
+}
 

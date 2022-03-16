@@ -51,3 +51,10 @@ export function quitGroup(uid, groupId) {
       {uid, groupId},
   )
 }
+
+export function sendFriendApply(friendUid) {
+  return post(
+      '/friend/apply/friend',
+      {friendUid},
+  )
+}

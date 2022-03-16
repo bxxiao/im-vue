@@ -1,77 +1,85 @@
 <template>
-  <el-container style="height: 100%;">
-    <!-- 侧边会话列表 -->
-    <el-aside style="width: 20%;border-right-style: solid;border-width: 1px;border-color: #dbdfe7;">
-      <el-container style="height: 100%;">
-        <!-- 搜索框 -->
-        <el-header height="">
-          <!-- Layout布局 -->
-          <el-row style="margin-top: 10px;margin-bottom: 10px" class="search-header" :gutter="10">
-            <el-col class="search-header-item" :span="16">
-              <el-input size="small" v-model="input" placeholder="搜索会话..."></el-input>
-            </el-col>
-            <el-col class="search-header-item" :span="4">
-              <el-button size="small" icon="el-icon-search" circle></el-button>
-            </el-col>
-            <!-- 弹出框 -->
-            <el-popover placement="bottom" trigger="click">
-              <!-- 该按钮组是弹出内容 -->
-              <el-button-group>
-                <el-button size="small">添加好友</el-button>
-                <el-button size="small">创建群聊</el-button>
-              </el-button-group>
-              <el-button slot="reference" circle icon="el-icon-plus" size="small"/>
-            </el-popover>
-          </el-row>
-        </el-header>
-        <!-- title -->
-        <el-header height="" class="chat-list-title">
-          会话列表({{ $store.state.sessionList.list.length }})
-        </el-header>
+  <div style="height: 100%">
+    <el-container style="height: 100%;">
+      <!-- 侧边会话列表 -->
+      <el-aside style="width: 20%;border-right-style: solid;border-width: 1px;border-color: #dbdfe7;">
+        <el-container style="height: 100%;">
+          <!-- 搜索框 -->
+          <el-header height="">
+            <!-- Layout布局 -->
+            <el-row style="margin-top: 10px;margin-bottom: 10px" class="search-header" :gutter="10">
+              <el-col class="search-header-item" :span="16">
+                <el-input size="small" v-model="input" placeholder="搜索会话..."></el-input>
+              </el-col>
+              <el-col class="search-header-item" :span="4">
+                <el-button size="small" icon="el-icon-search" circle></el-button>
+              </el-col>
+              <!-- 弹出框 -->
+              <el-popover placement="bottom" trigger="click">
+                <!-- 该按钮组是弹出内容 -->
+                <el-button-group>
+                  <el-button size="small" @click="friendSearchVisible = true">添加</el-button>
+                  <el-button size="small">创建群聊</el-button>
+                </el-button-group>
+                <el-button slot="reference" circle icon="el-icon-plus" size="small"/>
+              </el-popover>
+            </el-row>
+          </el-header>
+          <!-- title -->
+          <el-header height="" class="chat-list-title">
+            会话列表({{ $store.state.sessionList.list.length }})
+          </el-header>
 
-        <!-- 会话列表 -->
-        <el-scrollbar style="height: 100%;">
-          <el-main style="height: 100%;padding: 0;"
-                   v-if="$store.state.sessionList.hasInit">
-            <!-- 会话项 -->
-            <div @click="clickSession(session)" class="chat-item"
-                 :ref="getSessionRef(session)"
-                 :class="{'active-chat-item': $store.state.selectedSession.id === session.toId && $store.state.selectedSession.type === session.type}"
-                 v-for="session in $store.state.sessionList.list">
-              <el-row style="height: 100%">
-                <el-col :span="5" class="avatar-box"
-                        style="height: 100%;display: flex;align-items: center;justify-content: center">
-                  <el-avatar class="chat-list-item-avatar"
-                             :src="session.avatar"/>
-                </el-col>
-                <el-col :span="19" class="card-box">
-                  <div style="margin-top: 6px;">
-                    <span style="font-size: 14px;margin-right: 2px;">{{ session.name }}</span>
-                    <!-- 标识是群聊 -->
-                    <el-tag size="mini" v-if="session.type == 2">群组</el-tag>
-                    <el-badge :value="session.unread" :max="maxValue" :hidden="session.unread == 0"/>
-                    <span style="float: right;margin-right: 4px;" class="chat-item-time">{{
-                        parseTime(session.time)
-                      }}</span>
-                  </div>
-                  <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
-                    {{ parseLastMsg(session.lastMsg) }}
-                  </div>
-                </el-col>
-              </el-row>
+          <!-- 会话列表 -->
+          <el-scrollbar style="height: 100%;">
+            <el-main style="height: 100%;padding: 0;"
+                     v-if="$store.state.sessionList.hasInit">
+              <!-- 会话项 -->
+              <div @click="clickSession(session)" class="chat-item"
+                   :ref="getSessionRef(session)"
+                   :class="{'active-chat-item': $store.state.selectedSession.id === session.toId && $store.state.selectedSession.type === session.type}"
+                   v-for="session in $store.state.sessionList.list">
+                <el-row style="height: 100%">
+                  <el-col :span="5" class="avatar-box"
+                          style="height: 100%;display: flex;align-items: center;justify-content: center">
+                    <el-avatar class="chat-list-item-avatar"
+                               :src="session.avatar"/>
+                  </el-col>
+                  <el-col :span="19" class="card-box">
+                    <div style="margin-top: 6px;">
+                      <span style="font-size: 14px;margin-right: 2px;">{{ session.name }}</span>
+                      <!-- 标识是群聊 -->
+                      <el-tag size="mini" v-if="session.type == 2">群组</el-tag>
+                      <el-badge :value="session.unread" :max="maxValue" :hidden="session.unread == 0"/>
+                      <span style="float: right;margin-right: 4px;" class="chat-item-time">{{
+                          parseTime(session.time)
+                        }}</span>
+                    </div>
+                    <div style="font-size: 13px;color: #8f959e;margin-top: 2px">
+                      {{ parseLastMsg(session.lastMsg) }}
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-main>
+            <div v-else class="session-list-loading">
+              <span><i class="el-icon-loading"></i>加载中</span>
             </div>
-          </el-main>
-          <div v-else class="session-list-loading">
-            <span><i class="el-icon-loading"></i>加载中</span>
-          </div>
-        </el-scrollbar>
-      </el-container>
-    </el-aside>
-    <!-- 聊天面板 -->
-    <el-main style="width: 80%;margin: 0;padding: 0;">
-      <ChatPanel ref="chatPanel"></ChatPanel>
-    </el-main>
-  </el-container>
+          </el-scrollbar>
+        </el-container>
+      </el-aside>
+      <!-- 聊天面板 -->
+      <el-main style="width: 80%;margin: 0;padding: 0;">
+        <ChatPanel ref="chatPanel"></ChatPanel>
+      </el-main>
+    </el-container>
+    <!-- 添加好友 对话框   -->
+    <el-dialog title="添加好友" :visible.sync="friendSearchVisible"
+               @close="clearDialog()"
+               width="25%">
+      <FriendSearchPanel ref="friendSearchDialog"></FriendSearchPanel>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -79,15 +87,18 @@ import MainLayout from "../MainLayout";
 import ChatPanel from "./child/ChatPanel";
 import moment from "moment";
 import {getSessionList, getDialogueData} from "../../utils/network/chat";
+import FriendSearchPanel from "./child/FriendSearchPanel";
 
 export default {
   name: "ChatView",
-  components: {ChatPanel, MainLayout},
+  components: {FriendSearchPanel, ChatPanel, MainLayout},
   data() {
     return {
       input: '',
       badgeValue: 0,
       maxValue: 99,
+      // 添加好友 对话框可见性
+      friendSearchVisible: false,
     }
   },
   methods: {
@@ -146,6 +157,13 @@ export default {
         // 点击后要置空，防止该函数重复执行
         this.$route.params.sessionRef = null;
       }
+    },
+
+    /*
+    * 添加好友对话框关闭时清空其数据
+    * */
+    clearDialog() {
+      this.$refs.friendSearchDialog.clearData();
     }
   },
 
