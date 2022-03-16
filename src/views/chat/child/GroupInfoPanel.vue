@@ -42,8 +42,8 @@
 </template>
 
 <script>
-import {deleteGroupMember} from "../../utils/network/friend";
-import {getGroupInfo} from "../../utils/network/chat";
+import {deleteGroupMember} from "../../../utils/network/friend";
+import {getGroupInfo} from "../../../utils/network/chat";
 
 export default {
   name: "GroupInfoPanel",

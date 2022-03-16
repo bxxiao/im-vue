@@ -76,7 +76,7 @@
 
 <script>
 import MainLayout from "../MainLayout";
-import ChatPanel from "./ChatPanel";
+import ChatPanel from "./child/ChatPanel";
 import moment from "moment";
 import {getSessionList, getDialogueData} from "../../utils/network/chat";
 

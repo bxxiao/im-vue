@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import emojiJson from '../../assets/emoji.json';
+import emojiJson from '../../../assets/emoji.json';
 
 export default {
   name: "Emoji",

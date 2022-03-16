@@ -83,7 +83,7 @@
 <script>
 import MsgBubble from "./MsgBubble";
 import GroupInfoPanel from "./GroupInfoPanel";
-import {getGroupInfo} from "../../utils/network/chat";
+import {getGroupInfo} from "../../../utils/network/chat";
 
 export default {
   name: "ChatPanel",
