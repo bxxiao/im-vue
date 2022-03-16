@@ -20,7 +20,7 @@
             </div>
             <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.id">
               <el-button size="mini" type="primary" icon="el-icon-s-promotion" @click="openChatPage(scope.row.id)">发送消息</el-button>
-              <el-button size="mini" type="danger" icon="el-icon-delete">删除好友</el-button>
+              <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteBtnClick(scope.row.id)">删除好友</el-button>
             </div>
           </div>
         </template>
@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import {listFriends} from "../../utils/network/friend";
+import {deleteFriend, listFriends} from "../../../utils/network/friend";
 
 export default {
   name: "FriendList",
@@ -89,6 +89,21 @@ export default {
           sessionRef: id
         }
       })
+    },
+
+    deleteBtnClick(friendUid) {
+      this.$confirm('确认删除好友?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteFriend(this.$store.state.userInfo.uid, friendUid).then(result => {
+          if (result !== undefined && result.data.code === 200) {
+            this.$message.success("删除好友成功");
+            this.loadFriends(this.$store.state.userInfo.uid);
+          }
+        })
+      });
     }
   },
 

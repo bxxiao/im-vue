@@ -38,7 +38,7 @@ TODO：Apply、FriendList、GroupList可以尝试抽取一个组件模板出来
 </template>
 
 <script>
-import {listApply, dealApply} from "../../utils/network/friend";
+import {listApply, dealApply} from "../../../utils/network/friend";
 import moment from "moment";
 
 export default {

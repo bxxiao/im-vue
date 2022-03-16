@@ -19,7 +19,7 @@
           </div>
           <div style="float: right;display: flex;align-items: center;justify-content: center" v-if="mouseoverNum === scope.row.id">
             <el-button size="mini" type="primary" icon="el-icon-s-promotion" @click="openChatPage(scope.row.id)">发送消息</el-button>
-            <el-button size="mini" type="danger" icon="el-icon-delete">退出群聊</el-button>
+            <el-button size="mini" type="danger" icon="el-icon-delete" @click="quitBtnClick(scope.row.id)">退出群聊</el-button>
           </div>
         </div>
       </template>
@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import {listGroups} from "../../utils/network/friend";
+import {deleteFriend, listGroups, quitGroup} from "../../../utils/network/friend";
 
 export default {
   name: "GroupList",
@@ -80,6 +80,21 @@ export default {
     },
     itemMouseleave() {
       this.mouseoverNum = null;
+    },
+
+    quitBtnClick(groupId) {
+      this.$confirm('确认退出群聊?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        quitGroup(this.$store.state.userInfo.uid, groupId).then(result => {
+          if (result !== undefined && result.data.code === 200) {
+            this.$message.success('退出群聊成功');
+            this.loadGroups(this.$store.state.userInfo.uid);
+          }
+        })
+      });
     }
   },
 

@@ -43,17 +43,17 @@ const routes = [
           {
             path: 'apply',
             name: '好友申请',
-            component: () => import('../views/friend/Apply')
+            component: () => import('../views/friend/child/Apply')
           },
           {
             path: 'friendList',
             name: '我的好友',
-            component: () => import('../views/friend/FriendList')
+            component: () => import('../views/friend/child/FriendList')
           },
           {
             path: 'groupList',
             name: '我的群聊',
-            component: () => import('../views/friend/GroupList')
+            component: () => import('../views/friend/child/GroupList')
           }
         ]
       },

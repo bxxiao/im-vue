@@ -20,9 +20,17 @@
           <el-tooltip style="margin: 0 8px" class="item" effect="dark" content="历史消息" placement="bottom-start">
             <i class="el-icon-time" style="font-size: 25px;color: #828f95;"/>
           </el-tooltip>
-          <el-tooltip class="item" effect="dark" content="群设置" placement="bottom-start">
-            <i class="el-icon-setting" style="font-size: 25px;color: #828f95;"/>
+          <el-tooltip class="item" effect="dark" content="群设置" placement="bottom-start"
+                      v-if="$store.state.dialogue.type === 2">
+            <i class="el-icon-setting" style="font-size: 25px;color: #828f95;" @click="drawer = true"/>
           </el-tooltip>
+          <el-drawer
+              title="群信息"
+              :visible.sync="drawer"
+              @open="openGroupInfoDrawer"
+              direction="rtl">
+            <GroupInfoPanel :group-info="groupInfo"/>
+          </el-drawer>
         </div>
       </el-header>
 
@@ -74,10 +82,12 @@
 
 <script>
 import MsgBubble from "./MsgBubble";
+import GroupInfoPanel from "./GroupInfoPanel";
+import {getGroupInfo} from "../../utils/network/chat";
 
 export default {
   name: "ChatPanel",
-  components: {MsgBubble},
+  components: {GroupInfoPanel, MsgBubble},
   data() {
     return {
       inputContent: "",
@@ -88,9 +98,24 @@ export default {
       // 标记chatListDOM中的滚动条是不是第一次滑到顶
       firstToTop: true,
       loading: false,
+
+      // 群消息抽屉的变量
+      drawer: false,
+      // 抽屉中群消息数据
+      groupInfo: null,
     }
   },
   methods: {
+    openGroupInfoDrawer() {
+      if (!this.$store.state.dialogue.isInit || this.$store.state.dialogue.type !== 2)
+        return;
+
+      getGroupInfo(this.$store.state.userInfo.uid, this.$store.state.dialogue.id).then(result => {
+        if (result !== undefined && result.data.code === 200)
+          this.groupInfo = result.data.data;
+      })
+    },
+
     // 滚动到底部
     scrollToBottom() {
       if (this.$store.state.dialogue.afterUnshiftMsg) {

@@ -30,3 +30,24 @@ export function listGroups(uid) {
     {uid}
   )
 }
+
+export function deleteGroupMember(uid, groupId, deleted) {
+  return post(
+      '/friend/delete/groupMember',
+      {uid, groupId, deleted},
+  )
+}
+
+export function deleteFriend(uid, friendUid) {
+  return post(
+      '/friend/delete/friend',
+      {uid, friendUid},
+  )
+}
+
+export function quitGroup(uid, groupId) {
+  return post(
+      '/friend/quitGroup',
+      {uid, groupId},
+  )
+}

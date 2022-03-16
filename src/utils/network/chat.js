@@ -41,4 +41,11 @@ export function loadMsgs(uid, toId, type, msgSeq) {
   )
 }
 
+export function getGroupInfo(uid, groupId) {
+  return get(
+      '/chat/groupInfo',
+      {uid,groupId},
+  )
+}
+
 
