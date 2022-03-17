@@ -52,9 +52,9 @@ export function quitGroup(uid, groupId) {
   )
 }
 
-export function sendFriendApply(friendUid) {
+export function sendApply(targetId, type) {
   return post(
-      '/friend/apply/friend',
-      {friendUid},
+      '/friend/apply',
+      {targetId, type},
   )
 }

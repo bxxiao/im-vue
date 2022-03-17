@@ -51,7 +51,7 @@
 
 <script>
 import {searchUserAndGroup} from "../../../utils/network/chat";
-import {sendFriendApply} from "../../../utils/network/friend";
+import {sendApply} from "../../../utils/network/friend";
 
 export default {
   name: "FriendSearchPanel",
@@ -92,12 +92,13 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        console.log('okk')
-        // sendFriendApply(item.id).then(result => {
-        //   if (result != undefined && result.data.code === 200) {
-        //     this.$message.success("已发出好友申请");
-        //   }
-        // })
+        // 入群申请类型值在后端对应3
+        let typeParam = item.type === 1 ? 1 : 3;
+        sendApply(item.id, typeParam).then(result => {
+          if (result != undefined && result.data.code === 200) {
+            this.$message.success("已发出申请");
+          }
+        })
       });
     }
   },

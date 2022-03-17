@@ -15,9 +15,13 @@ TODO：Apply、FriendList、GroupList可以尝试抽取一个组件模板出来
           <el-avatar style="margin: 2px 5px;" :src="scope.row.senderAvatar"/>
           <div style="width: 82%;">
             <div>
-              <span style="font-size: 14px;margin-right: 5px" v-if="scope.row.type === 1">{{scope.row.senderName}}</span>
-              <span style="font-size: 14px;margin-right: 5px" v-else-if="scope.row.type === 2">
-                {{scope.row.senderName}} 邀请你加入群聊 [{{scope.row.groupName}}]
+              <span style="font-size: 14px;margin-right: 5px">
+                <!-- 好友申请 -->
+                <span v-if="scope.row.type === 1">{{scope.row.senderName}}</span>
+                <!-- 群邀请-->
+                <span v-else-if="scope.row.type === 2">{{scope.row.senderName}} 邀请你加入群聊 [{{scope.row.groupName}}]</span>
+                <!-- 入群申请 -->
+                <span v-else-if="scope.row.type === 3">{{scope.row.senderName}} 申请加入群 [{{scope.row.groupName}}]</span>
               </span>
               <el-tag size="mini" v-if="scope.row.status === 1">已同意</el-tag>
               <el-tag size="mini" type="danger" v-else-if="scope.row.status === 2">已拒绝</el-tag>
