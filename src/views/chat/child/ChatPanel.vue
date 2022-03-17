@@ -24,12 +24,13 @@
                       v-if="$store.state.dialogue.type === 2">
             <i class="el-icon-setting" style="font-size: 25px;color: #828f95;" @click="drawer = true"/>
           </el-tooltip>
+          <!-- 群消息抽屉 -->
           <el-drawer
               title="群信息"
               :visible.sync="drawer"
               @open="openGroupInfoDrawer"
               direction="rtl">
-            <GroupInfoPanel :group-info="groupInfo"/>
+            <GroupInfoPanel ref="infoDrawer"/>
           </el-drawer>
         </div>
       </el-header>
@@ -101,8 +102,6 @@ export default {
 
       // 群消息抽屉的变量
       drawer: false,
-      // 抽屉中群消息数据
-      groupInfo: null,
     }
   },
   methods: {
@@ -110,10 +109,8 @@ export default {
       if (!this.$store.state.dialogue.isInit || this.$store.state.dialogue.type !== 2)
         return;
 
-      getGroupInfo(this.$store.state.userInfo.uid, this.$store.state.dialogue.id).then(result => {
-        if (result !== undefined && result.data.code === 200)
-          this.groupInfo = result.data.data;
-      })
+      if (this.$refs.infoDrawer !== undefined)
+        this.$refs.infoDrawer.loadData();
     },
 
     // 滚动到底部

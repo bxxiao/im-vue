@@ -4,7 +4,7 @@
     <el-descriptions :column="1">
       <el-descriptions-item label="群名称 ">{{ groupInfo.name }}</el-descriptions-item>
       <el-descriptions-item label="群主 ">{{ groupInfo.masterName }}</el-descriptions-item>
-      <el-descriptions-item label="成员数量 ">{{ groupInfo.members.length }}</el-descriptions-item>
+      <el-descriptions-item label="成员数量 ">{{ memberCount }}</el-descriptions-item>
     </el-descriptions>
     <div style="width: 90%;display: flex;justify-content: center;margin-top: 5px">
       <el-button type="primary" round icon="el-icon-plus">邀请好友</el-button>
@@ -47,28 +47,38 @@ import {getGroupInfo} from "../../../utils/network/chat";
 
 export default {
   name: "GroupInfoPanel",
-  props: {
-    /*
-    * 属性值：
-    *   id
-    *   name
-    *   masterId
-    *   masterName
-    *   members: [{uid, name, avatar}, {...}]
-    * */
-    groupInfo: {
-      type: Object,
-      default: {}
-    }
-  },
-
   data() {
     return {
       mouseoverNum: null,
+      /*
+      * 属性值：
+      *   id
+      *   name
+      *   masterId
+      *   masterName
+      *   members: [{uid, name, avatar}, {...}]
+      * */
+      groupInfo: {},
+    }
+  },
+
+  computed: {
+    memberCount() {
+      if (this.groupInfo.members !== undefined)
+        return this.groupInfo.members.length;
+      return 0;
     }
   },
 
   methods: {
+    loadData() {
+      getGroupInfo(this.$store.state.userInfo.uid, this.$store.state.dialogue.id).then(result => {
+        if (result !== undefined && result.data.code === 200)
+          this.groupInfo = result.data.data;
+      })
+    },
+
+    // 踢
     removeMember(deleted) {
       // 确认框
       this.$confirm('确认将该用户踢出群聊吗?', '提示', {
@@ -80,10 +90,7 @@ export default {
         deleteGroupMember(this.$store.state.userInfo.uid, this.groupInfo.id, deleted).then(result => {
           if (result !== undefined && result.data.code === 200) {
             this.$message.success("已踢出群聊")
-            getGroupInfo(this.$store.state.userInfo.uid, this.$store.state.dialogue.id).then(result => {
-              if (result !== undefined && result.data.code === 200)
-                this.groupInfo = result.data.data;
-            })
+            this.loadData();
           }
         })
       });
@@ -99,6 +106,10 @@ export default {
     itemMouseleave() {
       this.mouseoverNum = null;
     },
+  },
+
+  mounted() {
+    this.loadData();
   }
 }
 </script>
