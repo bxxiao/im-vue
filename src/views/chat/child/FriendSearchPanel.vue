@@ -16,15 +16,15 @@
           v-loading="searching"
           :cell-style="{padding:'5px'}"
           border
+          empty-text="搜索不到匹配数据"
           style="width: 100%">
-        <el-table-column
-            label="搜索结果">
+        <el-table-column label="搜索结果">
           <template slot-scope="scope">
             <div style="display: flex;align-content: center;">
               <el-avatar style="margin: 2px 5px" :src="scope.row.avatar" size="medium"/>
               <div style="">
                 <div>
-                  <span style="font-size: 13px;">{{scope.row.name}}</span>
+                  <span style="font-size: 13px;">{{scope.row.name}} <el-tag size="mini" v-if="scope.row.type === 2">群</el-tag></span>
                 </div>
                 <div style="font-size: 9px;color: #8f959e;">
                   <span v-if="scope.row.type === 1">

@@ -42,11 +42,11 @@ export default {
   },
   methods: {
     openChatPage(groupId) {
-      let id = 'session' + 2 + '-' + groupId;
+      let key = 2 + '-' + groupId;
       this.$router.push({
         name: '聊天',
         params: {
-          sessionRef: id
+          sessionRef: key
         }
       })
     },

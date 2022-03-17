@@ -341,5 +341,32 @@ export default {
   closeWebSocket(state) {
     state.wsSocket.logout();
     state.wsSocket = null;
+  },
+
+  pushNewSession(state, session) {
+    state.sessionList.list.push(session);
+    let key = session.type + '-' + session.toId;
+    state.sessionList.maps.set(key, session);
+  },
+
+
+  resetDialogue(state) {
+    state.dialogue = {
+      isInit: false,
+      isLoading: false,
+      afterUnshiftMsg: false,
+      noMoreMsg: false,
+      isLoadingTop: false,
+      id: null,
+      name: null,
+      type: null,
+      avatar: null,
+      avatarMap: null,
+      isOnline: false,
+      msgRecords: [],
+      sendSelfMsgMap: null,
+      isInCheckCirculation: false,
+    }
   }
+
 }

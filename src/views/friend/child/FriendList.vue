@@ -77,16 +77,15 @@ export default {
 
     /*
     * 跳转到ChatView界面并点击对应会话项
-    * 在ChatView的会话项列表中，会给每个项动态绑定一个ref属性，值为 【session[type]-[id]】
-    * 这里通过跳转路由传参，将对应会话的ref值传过去
-    * ChatView中通过this.$route.params获取到参数值，然后执行点击事件
+    * 所有的会话项都放在state.sessionList中，并放在一个map，这里创建一个key，
+    * 再通过路由传送到ChatView，进行会话项点击
     * */
     openChatPage(uid) {
-      let id = 'session' + 1 + '-' + uid;
+      let key = 1 + '-' + uid;
       this.$router.push({
         name: '聊天',
         params: {
-          sessionRef: id
+          sessionRef: key
         }
       })
     },

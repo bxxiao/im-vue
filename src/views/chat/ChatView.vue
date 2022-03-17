@@ -1,5 +1,6 @@
 <template>
-  <div style="height: 100%">
+  <!-- 在整个组件的div搞一个click事件，用来将右键菜单关掉... -->
+  <div style="height: 100%" @click="closeRightMenu">
     <el-container style="height: 100%;">
       <!-- 侧边会话列表 -->
       <el-aside style="width: 20%;border-right-style: solid;border-width: 1px;border-color: #dbdfe7;">
@@ -38,6 +39,7 @@
               <div @click="clickSession(session)" class="chat-item"
                    :ref="getSessionRef(session)"
                    :class="{'active-chat-item': $store.state.selectedSession.id === session.toId && $store.state.selectedSession.type === session.type}"
+                   @contextmenu.prevent="showRightMenu($event, session)"
                    v-for="session in $store.state.sessionList.list">
                 <el-row style="height: 100%">
                   <el-col :span="5" class="avatar-box"
@@ -79,6 +81,24 @@
                width="25%">
       <FriendSearchPanel ref="friendSearchDialog"></FriendSearchPanel>
     </el-dialog>
+
+    <!-- 会话项右键菜单 -->
+    <div :style="{left: menuLeft + 'px', top: menuTop + 'px'}"
+         v-if="menuVisible"
+         style="position: fixed;padding: 3px;">
+      <div style="width: 100%">
+        <el-button size="mini" style="width: 100%" disabled>置顶</el-button>
+      </div>
+      <div style="width: 100%">
+        <el-button size="mini" style="width: 100%" @click="doRemoveSession">移除会话</el-button>
+      </div>
+      <div style="width: 100%">
+        <el-button size="mini" style="width: 100%" disabled>全部已读</el-button>
+      </div>
+      <div style="width: 100%">
+        <el-button size="mini" style="width: 100%" disabled>标为未读</el-button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -86,7 +106,7 @@
 import MainLayout from "../MainLayout";
 import ChatPanel from "./child/ChatPanel";
 import moment from "moment";
-import {getSessionList, getDialogueData} from "../../utils/network/chat";
+import {getSessionList, getDialogueData, deleteSession, createSession} from "../../utils/network/chat";
 import FriendSearchPanel from "./child/FriendSearchPanel";
 
 export default {
@@ -99,6 +119,15 @@ export default {
       maxValue: 99,
       // 添加好友 对话框可见性
       friendSearchVisible: false,
+      /*
+      * 右键菜单的左上距离
+      * */
+      menuLeft: 0,
+      menuTop: 0,
+      // 右键菜单可见性
+      menuVisible: false,
+      // 唤醒右键菜单时点击的会话项对象
+      rightClickSession: null,
     }
   },
   methods: {
@@ -120,7 +149,7 @@ export default {
     },
 
     parseTime(timeStr) {
-      if (timeStr === null || timeStr === undefined)
+      if (timeStr === null || timeStr === undefined || timeStr.trim() === '')
         return '';
       moment.locale('zh-cn');
       return moment(timeStr).calendar();
@@ -141,21 +170,61 @@ export default {
       return 'session' + id;
     },
 
+    /*
+    * 在好友或群聊列表点击发送信息时会通过路由传送参数，在这里触发对应会话项的点击事件进入聊天
+    *
+    * 调用该函数的情况：从好友列表或群列表点击【发送消息】跳转搞该页面时，触发 mounted：
+    *     若会话列表已初始化，则直接调用该函数
+    *     否则先初始化会话列表，随后触发updated调用该函数
+    * */
     clickSessionAfterRoute() {
-      /*
-      * 在好友或群聊列表点击发送信息时会通过路由传送参数，在这里触发对应会话项的点击事件进入聊天
-      * */
-      let refName = this.$route.params.sessionRef;
-      if (refName !== undefined && refName != null) {
-        /*
-        * 这里this.$refs[refName]获取到的是个数组（原因不明），第一个元素就是对应的dom对象，执行其click事件
-        * （若明确ref值，则可以直接 this.$refs.refName获取，这里是动态绑定的，所以用方括号语法）
-        * TODO：判断会话项是否存在，若不存在则先创建会话项
-        * */
-        let sessionDOM = this.$refs[refName];
-        sessionDOM[0].click();
-        // 点击后要置空，防止该函数重复执行
-        this.$route.params.sessionRef = null;
+      // gouba
+      // let refName = this.$route.params.sessionRef;
+      // if (refName !== undefined && refName != null) {
+      //   /*
+      //   * 这里this.$refs[refName]获取到的是个数组（原因不明），第一个元素就是对应的dom对象，执行其click事件
+      //   * （若明确ref值，则可以直接 this.$refs.refName获取，这里是动态绑定的，所以用方括号语法）
+      //   * TODO：判断会话项是否存在，若不存在则先创建会话项
+      //   * */
+      //   let sessionDOM = this.$refs[refName];
+      //   sessionDOM[0].click();
+      //   // 点击后要置空，防止该函数重复执行
+      //   this.$route.params.sessionRef = null;
+      // }
+
+      let key = this.$route.params.sessionRef;
+      if (key !== undefined && key !== null) {
+        let session = this.$store.state.sessionList.maps.get(key);
+        // 若会话不存在
+        if (session === undefined) {
+          let strs = key.split('-');
+          let type = Number(strs[0]);
+          let toId = Number(strs[1]);
+          // 发送请求创建新的会话
+          createSession(this.$store.state.userInfo.uid, toId, type).then(result => {
+            if (result !== undefined && result.data.code === 200) {
+              let info = result.data.data;
+              let newSession = {
+                toId,
+                name: info.name,
+                type,
+                // TODO：后端创建后再返回一个lastMsg？
+                lastMsg: '',
+                time: '',
+                unread: 0,
+                avatar: info.avatar,
+              };
+              this.$store.commit('pushNewSession', newSession);
+              this.clickSession(newSession);
+              this.$route.params.sessionRef = null;
+            }
+          });
+        } else {
+          // 点击会话项
+          this.clickSession(session);
+          // 移除路由中的数据
+          this.$route.params.sessionRef = null;
+        }
       }
     },
 
@@ -164,7 +233,46 @@ export default {
     * */
     clearDialog() {
       this.$refs.friendSearchDialog.clearData();
-    }
+    },
+
+    // 右键点击会话项，显示右键菜单
+    showRightMenu(event, session) {
+      this.menuVisible = false;
+      this.menuVisible = true;
+      this.rightClickSession = session;
+      this.menuLeft = event.clientX;
+      this.menuTop = event.clientY;
+    },
+
+    // 关闭右键菜单
+    closeRightMenu() {
+      this.menuVisible = false;
+    },
+
+    // 移除会话项
+    doRemoveSession() {
+      if (this.rightClickSession == null) {
+        this.closeRightMenu();
+        return;
+      }
+
+      deleteSession(this.rightClickSession.toId, this.rightClickSession.type).then(result => {
+        if (result !== undefined && result.data.code == 200) {
+          this.$message.success("删除会话成功");
+          // 删除后重新加载会话（或者直接从state中移除掉？）
+          getSessionList(this.$store.state.userInfo.uid).then(result => {
+            if (result !== undefined && result.data.code == 200) {
+              this.$store.commit('initSessionList', result.data.data);
+              // 若当前打开的聊天面板对应被删除的会话，重置dialogue
+              if (this.$store.state.selectedSession.id === this.rightClickSession.toId && this.$store.state.selectedSession.type === this.rightClickSession.type) {
+                this.$store.commit('resetDialogue')
+              }
+            }
+          })
+        }
+      })
+    },
+
   },
 
   /*
@@ -184,7 +292,7 @@ export default {
       this.$router.push('/login')
     } else
       /*
-      * 只有页面已被加载过才能进行会话项点击，若没有加载过（比如在friends页面刷新后再点击发送消息跳到该界面
+      * 只有页面已被加载过才能进行会话项点击，若没有加载过（比如在friends页面刷新后再点击发送消息跳到该界面）
       * 这时需要先通过getSessionList加载数据后触发updated函数，再执行该函数
       * */
       this.clickSessionAfterRoute();

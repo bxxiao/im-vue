@@ -55,3 +55,10 @@ export function searchUserAndGroup(keyword) {
   )
 }
 
+export function deleteSession(toId, type) {
+  return post(
+      '/chat/deleteSession',
+      {toId, type},
+  )
+}
+
