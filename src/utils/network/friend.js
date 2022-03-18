@@ -17,10 +17,13 @@ export function dealApply(applyId, dealResult) {
   )
 }
 
-export function listFriends(uid) {
+/*
+* online表示是否要查询好友是否在线
+* */
+export function listFriends(uid, online) {
   return get(
     '/friend/listFriends',
-    {uid}
+    {uid, online}
   )
 }
 

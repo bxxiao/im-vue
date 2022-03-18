@@ -20,7 +20,7 @@
                 <!-- 该按钮组是弹出内容 -->
                 <el-button-group>
                   <el-button size="small" @click="friendSearchVisible = true">添加</el-button>
-                  <el-button size="small">创建群聊</el-button>
+                  <el-button size="small" @click="groupCreateDialog = true">创建群聊</el-button>
                 </el-button-group>
                 <el-button slot="reference" circle icon="el-icon-plus" size="small"/>
               </el-popover>
@@ -75,6 +75,7 @@
         <ChatPanel ref="chatPanel"></ChatPanel>
       </el-main>
     </el-container>
+
     <!-- 添加好友 对话框   -->
     <el-dialog title="添加好友" :visible.sync="friendSearchVisible"
                @close="clearDialog()"
@@ -93,12 +94,26 @@
         <el-button size="mini" style="width: 100%" @click="doRemoveSession">移除会话</el-button>
       </div>
       <div style="width: 100%">
-        <el-button size="mini" style="width: 100%" disabled>全部已读</el-button>
+        <el-button size="mini" style="width: 100%" :disabled="rightClickSession.unread === 0" @click="setSessionRead">
+          全部已读
+        </el-button>
       </div>
       <div style="width: 100%">
-        <el-button size="mini" style="width: 100%" disabled>标为未读</el-button>
+        <el-button size="mini" style="width: 100%" :disabled="rightClickSession.unread > 0" @click="setSessionUnread">
+          标为未读
+        </el-button>
       </div>
     </div>
+
+    <!-- 创建群聊对话框
+        @opened指定打开动画结束后的回调，这时GroupCreatePanel组件已经挂载完毕
+     -->
+    <el-dialog title="创建群"
+               :visible.sync="groupCreateDialog"
+               @opened="openGroupCreatePanel"
+               width="30%">
+      <GroupCreatePanel ref="groupCreatePanel"></GroupCreatePanel>
+    </el-dialog>
   </div>
 </template>
 
@@ -107,11 +122,12 @@ import MainLayout from "../MainLayout";
 import ChatPanel from "./child/ChatPanel";
 import moment from "moment";
 import {getSessionList, getDialogueData, deleteSession, createSession} from "../../utils/network/chat";
-import FriendSearchPanel from "./child/FriendSearchPanel";
+import FriendSearchPanel from "./dialogue/FriendSearchPanel";
+import GroupCreatePanel from "./dialogue/GroupCreatePanel";
 
 export default {
   name: "ChatView",
-  components: {FriendSearchPanel, ChatPanel, MainLayout},
+  components: {GroupCreatePanel, FriendSearchPanel, ChatPanel, MainLayout},
   data() {
     return {
       input: '',
@@ -128,6 +144,8 @@ export default {
       menuVisible: false,
       // 唤醒右键菜单时点击的会话项对象
       rightClickSession: null,
+      // 创建群聊对话框可见性
+      groupCreateDialog: false,
     }
   },
   methods: {
@@ -237,9 +255,9 @@ export default {
 
     // 右键点击会话项，显示右键菜单
     showRightMenu(event, session) {
+      this.rightClickSession = session;
       this.menuVisible = false;
       this.menuVisible = true;
-      this.rightClickSession = session;
       this.menuLeft = event.clientX;
       this.menuTop = event.clientY;
     },
@@ -273,6 +291,20 @@ export default {
       })
     },
 
+    // 会话项设置为未读
+    setSessionUnread() {
+      this.$store.commit('setSessionUnread', {type: this.rightClickSession.type, toId: this.rightClickSession.toId});
+    },
+
+    // 会话项设置为已读
+    setSessionRead() {
+      this.$store.commit('setSessionRead', {type: this.rightClickSession.type, toId: this.rightClickSession.toId});
+    },
+
+    openGroupCreatePanel() {
+      this.$refs.groupCreatePanel.loadData();
+    },
+
   },
 
   /*
@@ -291,10 +323,10 @@ export default {
     } else if (token === null) {
       this.$router.push('/login')
     } else
-      /*
-      * 只有页面已被加载过才能进行会话项点击，若没有加载过（比如在friends页面刷新后再点击发送消息跳到该界面）
-      * 这时需要先通过getSessionList加载数据后触发updated函数，再执行该函数
-      * */
+        /*
+        * 只有页面已被加载过才能进行会话项点击，若没有加载过（比如在friends页面刷新后再点击发送消息跳到该界面）
+        * 这时需要先通过getSessionList加载数据后触发updated函数，再执行该函数
+        * */
       this.clickSessionAfterRoute();
   },
 

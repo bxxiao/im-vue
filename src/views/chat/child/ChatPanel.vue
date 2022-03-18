@@ -76,14 +76,16 @@
     </el-container>
     <!-- 没有选择聊天对象时的展示界面 -->
     <div style="height: 100%;display: flex;align-items: center;justify-content: center" v-else>
-      <span style="font-size: 25px"><i class="el-icon-magic-stick"></i></span>
+      <!--<span style="font-size: 25px"><i class="el-icon-magic-stick"></i></span>-->
+      <el-empty description="多喝热水"></el-empty>
     </div>
+
   </div>
 </template>
 
 <script>
 import MsgBubble from "./MsgBubble";
-import GroupInfoPanel from "./GroupInfoPanel";
+import GroupInfoPanel from "../dialogue/GroupInfoPanel";
 import {getGroupInfo} from "../../../utils/network/chat";
 
 export default {

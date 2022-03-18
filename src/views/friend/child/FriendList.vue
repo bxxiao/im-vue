@@ -60,7 +60,7 @@ export default {
     },
 
     loadFriends(uid) {
-      listFriends(uid).then(result => {
+      listFriends(uid, true).then(result => {
         if (result !== undefined && result.data.code === 200) {
           this.friends = result.data.data;
           this.inLoading = false;

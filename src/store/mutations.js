@@ -334,6 +334,7 @@ export default {
     state.dialogue.afterUnshiftMsg = false;
   },
 
+  // 将dialogue的正在加载消息标志置true
   dialogueLoadingTop(state) {
     state.dialogue.isLoadingTop = true;
   },
@@ -343,13 +344,14 @@ export default {
     state.wsSocket = null;
   },
 
+  // 添加新会话项
   pushNewSession(state, session) {
     state.sessionList.list.push(session);
     let key = session.type + '-' + session.toId;
     state.sessionList.maps.set(key, session);
   },
 
-
+  // 重置dialogue数据
   resetDialogue(state) {
     state.dialogue = {
       isInit: false,
@@ -367,6 +369,20 @@ export default {
       sendSelfMsgMap: null,
       isInCheckCirculation: false,
     }
+  },
+
+  // 将指定会话项置为未读
+  setSessionUnread(state, payload) {
+    let session = state.sessionList.maps.get(payload.type + '-' + payload.toId);
+    if (session !== undefined)
+      session.unread = 1;
+  },
+
+  // 将指定会话项置为已读
+  setSessionRead(state, payload) {
+    let session = state.sessionList.maps.get(payload.type + '-' + payload.toId);
+    if (session !== undefined)
+      session.unread = 0;
   }
 
 }
