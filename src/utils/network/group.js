@@ -9,3 +9,20 @@ export function createGroup(masterUid, members, groupName) {
         {masterUid, members, groupName},
     )
 }
+
+export function inviteFriend(friendIds, groupId) {
+    return post(
+        '/group/invite',
+        {groupId, friendIds},
+    )
+}
+
+/*
+* 解散群
+* */
+export function dissolveGroup(masterUid, groupId) {
+    return post(
+        '/group/dissolve',
+        {masterUid, groupId},
+    )
+}
