@@ -6,7 +6,8 @@
         label="群聊列表">
       <template slot-scope="scope">
         <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.id)" @mouseleave="itemMouseleave">
-          <el-avatar style="margin: 2px 5px" :src="scope.row.avatar"/>
+          <!--<el-avatar style="margin: 2px 5px" :src="scope.row.avatar"/>-->
+          <Avatar :username="scope.row.name" :src="scope.row.avatar" style="margin-right: 5px" :size="42"></Avatar>
           <div style="width: 80%;">
             <div>
               <span style="font-size: 14px;margin-right: 5px">{{scope.row.name}}</span>
@@ -29,9 +30,11 @@
 
 <script>
 import {deleteFriend, listGroups, quitGroup} from "../../../utils/network/friend";
+import Avatar from "vue-avatar";
 
 export default {
   name: "GroupList",
+  components: {Avatar},
   data() {
     return {
       // {id name avatar}

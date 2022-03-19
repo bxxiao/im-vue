@@ -12,7 +12,8 @@ TODO：Apply、FriendList、GroupList可以尝试抽取一个组件模板出来
     <el-table-column label="好友申请">
       <template slot-scope="scope">
         <div style="display: flex;width: 100%" @mouseover="itemMouseover(scope.row.id)" @mouseleave="itemMouseleave">
-          <el-avatar style="margin: 2px 5px;" :src="scope.row.senderAvatar"/>
+          <!--<el-avatar style="margin: 2px 5px;" :src="scope.row.senderAvatar"/>-->
+          <Avatar :username="scope.row.name" :src="scope.row.senderAvatar" style="margin-right: 5px" :size="42"></Avatar>
           <div style="width: 82%;">
             <div>
               <span style="font-size: 14px;margin-right: 5px">
@@ -44,9 +45,11 @@ TODO：Apply、FriendList、GroupList可以尝试抽取一个组件模板出来
 <script>
 import {listApply, dealApply} from "../../../utils/network/friend";
 import moment from "moment";
+import Avatar from "vue-avatar";
 
 export default {
   name: "Apply",
+  components: {Avatar},
   data() {
     return {
       /*

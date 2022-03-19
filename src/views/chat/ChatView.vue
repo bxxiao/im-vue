@@ -31,6 +31,7 @@
             会话列表({{ $store.state.sessionList.list.length }})
           </el-header>
 
+
           <!-- 会话列表 -->
           <el-scrollbar style="height: 100%;">
             <el-main style="height: 100%;padding: 0;"
@@ -44,8 +45,9 @@
                 <el-row style="height: 100%">
                   <el-col :span="5" class="avatar-box"
                           style="height: 100%;display: flex;align-items: center;justify-content: center">
-                    <el-avatar class="chat-list-item-avatar"
-                               :src="session.avatar"/>
+                    <!--<el-avatar class="chat-list-item-avatar"-->
+                    <!--           :src="session.avatar"/>-->
+                    <Avatar :username="session.name" :src="session.avatar" :size="42"></Avatar>
                   </el-col>
                   <el-col :span="19" class="card-box">
                     <div style="margin-top: 6px;">
@@ -124,10 +126,11 @@ import moment from "moment";
 import {getSessionList, getDialogueData, deleteSession, createSession} from "../../utils/network/chat";
 import FriendSearchPanel from "./dialogue/FriendSearchPanel";
 import GroupCreatePanel from "./dialogue/GroupCreatePanel";
+import Avatar from 'vue-avatar'
 
 export default {
   name: "ChatView",
-  components: {GroupCreatePanel, FriendSearchPanel, ChatPanel, MainLayout},
+  components: {GroupCreatePanel, FriendSearchPanel, ChatPanel, MainLayout, Avatar},
   data() {
     return {
       input: '',

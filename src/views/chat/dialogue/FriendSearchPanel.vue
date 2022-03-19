@@ -21,7 +21,7 @@
         <el-table-column label="搜索结果">
           <template slot-scope="scope">
             <div style="display: flex;align-content: center;">
-              <el-avatar style="margin: 2px 5px" :src="scope.row.avatar" size="medium"/>
+              <Avatar :username="scope.row.name" style="margin: 5px 5px" :src="scope.row.avatar" :size="35"></Avatar>
               <div style="">
                 <div>
                   <span style="font-size: 13px;">{{scope.row.name}} <el-tag size="mini" v-if="scope.row.type === 2">群</el-tag></span>
@@ -52,9 +52,11 @@
 <script>
 import {searchUserAndGroup} from "../../../utils/network/chat";
 import {sendApply} from "../../../utils/network/friend";
+import Avatar from "vue-avatar";
 
 export default {
   name: "FriendSearchPanel",
+  components: {Avatar},
   data() {
     return {
       keyword: '',
