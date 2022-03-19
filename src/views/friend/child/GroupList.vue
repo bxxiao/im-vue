@@ -43,6 +43,7 @@ export default {
   methods: {
     openChatPage(groupId) {
       let key = 2 + '-' + groupId;
+
       this.$router.push({
         name: '聊天',
         params: {
@@ -92,6 +93,8 @@ export default {
           if (result !== undefined && result.data.code === 200) {
             this.$message.success('退出群聊成功');
             this.loadGroups(this.$store.state.userInfo.uid);
+            // 退群后会删除群聊会话，将sessionList的hasInit置false，跳转到ChatView时会重新加载
+            this.$store.commit('setSessionNotInit');
           }
         })
       });

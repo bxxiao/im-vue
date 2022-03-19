@@ -383,6 +383,12 @@ export default {
     let session = state.sessionList.maps.get(payload.type + '-' + payload.toId);
     if (session !== undefined)
       session.unread = 0;
+  },
+
+  setSessionNotInit(state) {
+    state.sessionList.hasInit = false;
+    if (state.selectedSession.id === state.dialogue.id && state.selectedSession.type === state.dialogue.type)
+      this.commit('resetDialogue');
   }
 
 }

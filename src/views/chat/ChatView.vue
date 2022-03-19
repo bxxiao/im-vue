@@ -112,7 +112,7 @@
                :visible.sync="groupCreateDialog"
                @opened="openGroupCreatePanel"
                width="30%">
-      <GroupCreatePanel ref="groupCreatePanel"></GroupCreatePanel>
+      <GroupCreatePanel ref="groupCreatePanel" @createFinished="groupCreateDialog = false"></GroupCreatePanel>
     </el-dialog>
   </div>
 </template>

@@ -100,6 +100,8 @@ export default {
           if (result !== undefined && result.data.code === 200) {
             this.$message.success("删除好友成功");
             this.loadFriends(this.$store.state.userInfo.uid);
+            // 删除好友后会删除群聊会话，将sessionList的hasInit置false，跳转到ChatView时会重新加载
+            this.$store.commit('setSessionNotInit');
           }
         })
       });
