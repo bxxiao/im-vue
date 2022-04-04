@@ -81,6 +81,11 @@ class WsSocket {
           store.commit('msgReadHandler', msgRead.getMsgidsList())
         }
         break;
+      case 5:
+        let msgCancel = IMProto.MsgCancel.deserializeBinary(packetData);
+        console.log(msgCancel.getMsgid())
+        store.commit('msgCanceled', msgCancel);
+        break;
       // pong回应
       case 222:
         console.log('receive pong from server')
@@ -108,10 +113,18 @@ class WsSocket {
     this.sendWS(4, msgRead);
   }
 
+  sendMsgCancelPacket(msgId, type, toId) {
+    let msg = new IMProto.MsgCancel();
+    msg.setMsgid(msgId);
+    msg.setType(type);
+    msg.setToid(toId)
+    this.sendWS(5, msg);
+  }
+
   /*
   * 发送消息
   * */
-  sendChatMsgPacket(type, fromUid, toId, content, msgId, time) {
+  sendChatMsgPacket(type, fromUid, toId, content, msgId, time, isFile) {
     let chatMsg = new IMProto.ChatMsg();
     // 0-单聊 1-群聊
     chatMsg.setType(type);
@@ -120,9 +133,15 @@ class WsSocket {
     chatMsg.setToid(toId);
     chatMsg.setContent(content);
     chatMsg.setTime(time);
+    chatMsg.setUsername(store.state.userInfo.name);
+    if (isFile)
+      chatMsg.setContenttype(2)
+    else
+      chatMsg.setContenttype(1);
 
     this.sendWS(1, chatMsg);
   }
+
 
   /*
      * 0 - Login

@@ -81,6 +81,7 @@ export default {
     // 重新初始化sendSelfMsgMap
     state.dialogue.sendSelfMsgMap = null;
     state.dialogue.sendSelfMsgMap = new Map();
+    state.dialogue.fileMap = new Map();
 
     // 单聊类型处理
     if (state.dialogue.type === 1) {
@@ -175,7 +176,8 @@ export default {
     let session = state.sessionList.maps.get(type + '-' + toId);
 
     // 1. 更新会话项
-    session.lastMsg = chatMsg.getContent();
+    let lastMsg = chatMsg.getContenttype() == 2 ? '[文件]' : chatMsg.getContent();
+    session.lastMsg = lastMsg;
     session.time = chatMsg.getTime();
     // 2.1 对应的对话框没有打开，则其 未读 属性+1
     if (!(state.selectedSession.type === session.type && state.selectedSession.id === session.toId))
@@ -190,8 +192,15 @@ export default {
         type: chatMsg.getType(),
         content: chatMsg.getContent(),
         time: chatMsg.getTime(),
-        hasRead: true
+        hasRead: true,
+        username: chatMsg.getUsername(),
       };
+      if (chatMsg.getContenttype() == 2) {
+        newMsg.isFile = true;
+        let i = newMsg.content.lastIndexOf('/');
+        let fileName = newMsg.content.substring(i + 1);
+        newMsg.fileName = fileName;
+      }
       state.dialogue.msgRecords.push(newMsg);
       // 单聊消息发送已读包
       if (type === 1)
@@ -228,7 +237,7 @@ export default {
     state.dialogue.sendSelfMsgMap.set(msg.msgId, msg);
     state.sendingMsgMap.set(msg.msgId, msg);
     // WebSocket发送消息
-    state.wsSocket.sendChatMsgPacket(msg.type - 1, msg.fromUid, msg.toId, msgContent, msg.msgId, msg.time);
+    state.wsSocket.sendChatMsgPacket(msg.type - 1, msg.fromUid, msg.toId, msgContent, msg.msgId, msg.time, false);
   },
 
   /*
@@ -236,8 +245,10 @@ export default {
   * */
   setMsgSent(state, ack) {
     let msg = state.sendingMsgMap.get(ack.getMsgid());
-    msg.sendStatus = 0;
-    state.sendingMsgMap.delete(msg.msgId);
+    if (msg && msg.sendStatus) {
+      msg.sendStatus = 0;
+      state.sendingMsgMap.delete(msg.msgId);
+    }
   },
 
   /*
@@ -389,6 +400,66 @@ export default {
     state.sessionList.hasInit = false;
     if (state.selectedSession.id === state.dialogue.id && state.selectedSession.type === state.dialogue.type)
       this.commit('resetDialogue');
+  },
+
+  pushFileMsg(state, msg) {
+    state.dialogue.msgRecords.push(msg);
+    state.dialogue.fileMap.set(msg.file.id, msg);
+  },
+
+  fileOnProgress(state, payload) {
+    let msg = state.dialogue.fileMap.get(payload.fileId);
+    msg.file.percent = payload.percent;
+    if (payload.percent === 100) {
+      msg.content = 'http://localhost:8484/upload/' + msg.file.name;
+      state.wsSocket.sendChatMsgPacket(msg.type - 1, msg.fromUid, msg.toId, msg.content, msg.msgId, msg.time, true);
+      let key = msg.type + '-' + msg.toId;
+      let session = state.sessionList.maps.get(key);
+      if (session) {
+        session.lastMsg = '[文件]'
+        session.time = msg.time;
+      }
+    }
+  },
+
+  // 收到消息被撤回的通知
+  msgCanceled(state, msgCancel) {
+    let records = state.dialogue.msgRecords;
+    for (let i = records.length - 1; i >= 0; i--) {
+      if (records[i].msgId === msgCancel.getMsgid()) {
+        records[i].hasCancel = true;
+        if (i === records.length - 1) {
+          let key = state.dialogue.type + '-' + state.dialogue.id;
+          let session = state.sessionList.maps.get(key);
+          session.lastMsg = state.dialogue.type === 1 ? (state.dialogue.name + ' 撤回了消息') : (records[i].username + ' 撤回了消息');
+        }
+
+        break;
+      }
+    }
+    let newRecords = Array.from(state.dialogue.msgRecords);
+    state.dialogue.msgRecords = [];
+    state.dialogue.msgRecords = newRecords;
+  },
+
+  // 消息撤回
+  setMsgCanceled(state, msgId) {
+    let records = state.dialogue.msgRecords;
+    let msg = null;
+    for (let i = records.length - 1; i >= 0; i--) {
+      if (records[i].msgId === msgId) {
+        records[i].hasCancel = true;
+        msg = records[i];
+        break;
+      }
+    }
+    if (msg) {
+      state.wsSocket.sendMsgCancelPacket(msg.msgId, state.dialogue.type, state.dialogue.id);
+      console.log(msg.msgId, state.dialogue.type, state.dialogue.id)
+      let key = state.dialogue.type + '-' + state.dialogue.id;
+      let session = state.sessionList.maps.get(key);
+      session.lastMsg = '你 撤回了消息'
+    }
   }
 
 }

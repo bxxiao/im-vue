@@ -64,9 +64,15 @@ export default {
     * -2 - 发送中
     * 若为整数，则表示已重发的次数
     *
-    * demo: {msgId, msgSeq, fromUid, toId, type, content, time, hasRead[, sendStatus]}
+    * demo: {msgId, msgSeq, fromUid, toId, type, content, time, hasRead[, sendStatus,
+    *           文件：isFile, file:{percent, id, name, size}}
+    *           hasCancel
     * */
     msgRecords: [],
+    /*
+    * 发送中的文件项 fileId - msg
+    * */
+    fileMap: null,
     /*
     * 当前用户发送的未被读的消息map，用于收到已读确认时快速定位到消息并置为已读，
     * 映射关系 【msgId - {msgRecords中的某条记录}】

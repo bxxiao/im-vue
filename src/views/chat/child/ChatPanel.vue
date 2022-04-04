@@ -51,12 +51,25 @@
           <!-- 工具栏 -->
           <el-header class="edit-header" style="height: 16%">
             <!-- 表情包 -->
-            <div class="toolbar-item-div">
-              <span class="el-icon-lollipop edit-toolbar-item"></span>
+            <div class="toolbar-item-div" style="position: relative">
+              <span class="el-icon-lollipop edit-toolbar-item" @click="showEmoji = !showEmoji"></span>
+              <div style="position: absolute;bottom: 25px;left: 0" v-if="showEmoji">
+                <VEmojiPicker @select="selectEmoji"/>
+              </div>
             </div>
-            <!-- 文件 -->
-            <div class="toolbar-item-div">
-              <span class="el-icon-folder edit-toolbar-item"></span>
+            <div class="toolbar-item-div" style="position: relative">
+              <el-upload
+                  class="upload-demo"
+                  ref="upload"
+                  action="http://localhost:8484/api/file/upload/"
+                  :headers="headers"
+                  :file-list="fileList"
+                  :show-file-list="false"
+                  :on-progress="onUpload"
+                  :before-upload="beforeUpload"
+                  :auto-upload="true">
+                <span slot="trigger" class="el-icon-folder edit-toolbar-item"></span>
+              </el-upload>
             </div>
             <!-- 图片 -->
             <div class="toolbar-item-div">
@@ -65,7 +78,7 @@
           </el-header>
           <!-- 输入文本框 -->
           <el-main style="height: 84%;padding: 0;overflow: hidden">
-            <textarea class="edit-area" v-model="inputContent"></textarea>
+            <textarea name="emoji" class="edit-area" v-model="inputContent"></textarea>
           </el-main>
         </el-container>
         <el-button type="primary" size="small" @click="sendMsg" plain style="position: fixed;right: 10px;bottom: 10px;">
@@ -87,6 +100,9 @@
 import MsgBubble from "./MsgBubble";
 import GroupInfoPanel from "../dialogue/GroupInfoPanel";
 import {getGroupInfo} from "../../../utils/network/chat";
+import {v4 as uuidV4} from "uuid";
+import moment from "_moment@2.29.1@moment";
+// import VEmojiPicker from 'v-emoji-picker' ;
 
 export default {
   name: "ChatPanel",
@@ -104,9 +120,65 @@ export default {
 
       // 群消息抽屉的变量
       drawer: false,
+
+      showEmoji: false,
+      // 文件上传
+      fileList: [],
+      showFileUpload: true,
+
+      loaded: 0,
+      total: 1,
     }
   },
+
+  computed: {
+    headers() {
+      let jwt = localStorage.getItem('JWT');
+      return {
+        Authorization: 'Bearer ' + jwt
+      }
+    },
+  },
+
   methods: {
+    // uploadSuccess(response, file, fileList) {
+    //   console.log(response)
+    // },
+
+    beforeUpload(file) {
+      let msg = {
+        msgId: uuidV4(),
+        fromUid: this.$store.state.userInfo.uid,
+        toId: this.$store.state.dialogue.id,
+        type: this.$store.state.dialogue.type,
+        content: '',
+        time: moment().format(),
+        hasRead: false,
+        sendStatus: -2,
+        isFile: true,
+        sendingFile: true,
+        file: {
+          percent: 0,
+          id: file.uid,
+          name: file.name
+        }
+      };
+
+      this.$store.commit('pushFileMsg', msg);
+    },
+
+    onUpload(event, file, fileList) {
+      // console.log(event)
+      this.$store.commit('fileOnProgress', {
+        fileId: file.uid,
+        percent: event.percent,
+      });
+    },
+
+    // 选中表情后加入输入框
+    selectEmoji(emoji) {
+      this.inputContent += emoji.data;
+    },
     openGroupInfoDrawer() {
       if (!this.$store.state.dialogue.isInit || this.$store.state.dialogue.type !== 2)
         return;

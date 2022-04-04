@@ -11,12 +11,18 @@
                style="height: 100%;position: relative">
         <div>
           <img style="border-radius: 50%;width: 80%;height: 80%;padding: 10%;" :src="$store.state.userInfo.avatar">
+          <div style="display: flex;justify-content: center">
+            <span style="font-size: 14px;color: white">{{$store.state.userInfo.name}}</span>
+          </div>
         </div>
-        <el-menu-item index="/main/chat">
+        <el-menu-item index="/main/chat" style="position: relative">
+          <!--<el-badge is-dot class="item" style="position: absolute;left: 65%;top: -25%" />-->
           <i class="el-icon-chat-dot-square"></i>
           <span slot="title">消息</span>
+
         </el-menu-item>
         <el-menu-item index="/main/friend">
+          <!--<el-badge is-dot class="item" style="position: absolute;left: 65%;top: -25%" />-->
           <i class="el-icon-user-solid"></i>
           <span slot="title">联系人</span>
         </el-menu-item>
