@@ -72,9 +72,9 @@
               </el-upload>
             </div>
             <!-- 图片 -->
-            <div class="toolbar-item-div">
-              <span class="el-icon-picture-outline edit-toolbar-item"></span>
-            </div>
+            <!--<div class="toolbar-item-div">-->
+            <!--  <span class="el-icon-picture-outline edit-toolbar-item"></span>-->
+            <!--</div>-->
           </el-header>
           <!-- 输入文本框 -->
           <el-main style="height: 84%;padding: 0;overflow: hidden">
@@ -238,6 +238,12 @@ export default {
     sendMsg() {
       if (this.inputContent.trim() === '')
         return;
+
+      if (!this.$store.state.wsSocket.isConnectionOK()) {
+        this.$message.error('连接已断开，请检查网络');
+        return;
+      }
+
       this.$store.commit('sendMsg', this.inputContent);
       this.inputContent = '';
       this.$store.dispatch('checkAndResendMsg');

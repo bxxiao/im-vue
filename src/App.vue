@@ -23,6 +23,7 @@ export default {
   mounted() {
     if (!isRefInit())
       initRef(this);
+    this.$store.commit('setVueRef', this);
   }
 
 }

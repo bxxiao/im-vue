@@ -1,4 +1,5 @@
 export default {
+  vueRef: null,
   // 会话列表
   sessionList: {
     hasInit: false,

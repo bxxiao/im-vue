@@ -1,15 +1,21 @@
 import IMProto from '../protobuf/IMProto_pb'
 import store from '../store/index'
 
-/*
-* TODO：protobuf的类型抽象出一个js文件
-* */
-
 class WsSocket {
   // WebSocket对象
   socket;
 
   url = 'ws://127.0.0.1:9988/ws';
+
+  vueRef = null;
+
+  setVueRef(ref) {
+    this.vueRef = ref;
+  }
+
+  isConnectionOK() {
+    return this.isSocketOpen;
+  }
 
   /*
   * 连接建立时回调函数
@@ -154,6 +160,10 @@ class WsSocket {
   * 将数据封装为IMPacket发送
   * */
   sendWS(type, data) {
+    if (!this.isSocketOpen) {
+      this.vueRef.$message.error('当前连接异常');
+      return;
+    }
     let packet = new IMProto.IMPacket();
     packet.setType(type);
 
@@ -161,7 +171,6 @@ class WsSocket {
       packet.setData(data.serializeBinary());
 
     this.socket.send(packet.serializeBinary());
-    this.hasSendPacket = true;
   }
   //============================send<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -221,6 +230,7 @@ class WsSocket {
             thisRef.unReceivePongCount++;
             if (thisRef.unReceivePongCount === 2) {
               console.log('服务端长时间无回应，连接已断开...');
+              thisRef.vueRef.$message.error('服务端长时间无回应，连接已断开...');
               thisRef.socket.close();
               // 重置2个变量
               thisRef.hasReceivePong = true;
@@ -272,6 +282,7 @@ class WsSocket {
       // 重连成功
       if (thisRef.isSocketOpen) {
         console.log('重连成功...')
+        thisRef.vueRef.$message.success('与服务器重连成功');
         thisRef.lockReconnect = false;
         return;
       }
@@ -279,12 +290,14 @@ class WsSocket {
       // 重连次数到达限制，停止重连
       if (thisRef.reconnectLimit === 0) {
         console.log('重连失败，与服务端断开连接，请检查网络设置');
+        thisRef.vueRef.$message.error('重连失败，与服务端断开连接，请检查网络设置');
         return;
       }
 
       // 重连次数减一
       thisRef.reconnectLimit--;
       console.log('第' + (thisRef.reconnectMax - thisRef.reconnectLimit) + '次重连中...');
+      thisRef.vueRef.$message.warning('连接已断开，第' + (thisRef.reconnectMax - thisRef.reconnectLimit) + '次重连中...');
       // 重连
       thisRef.initWebSocket();
       // 周期性执行，直到满足终止条件

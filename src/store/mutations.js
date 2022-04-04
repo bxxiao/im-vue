@@ -4,6 +4,10 @@ import { v4 as uuidV4 } from 'uuid'
 import {updateLastSeq} from "../utils/network/chat";
 
 export default {
+  setVueRef(state, vueRef) {
+    state.vueRef = vueRef;
+  },
+
   initUserInfo(state, info) {
     state.userInfo.uid = info.id;
     state.userInfo.name = info.name;
@@ -15,6 +19,7 @@ export default {
     if (state.wsSocket === null) {
       state.wsSocket = new WsSocket();
       state.wsSocket.initWebSocket();
+      state.wsSocket.setVueRef(state.vueRef);
     }
   },
 
@@ -455,7 +460,6 @@ export default {
     }
     if (msg) {
       state.wsSocket.sendMsgCancelPacket(msg.msgId, state.dialogue.type, state.dialogue.id);
-      console.log(msg.msgId, state.dialogue.type, state.dialogue.id)
       let key = state.dialogue.type + '-' + state.dialogue.id;
       let session = state.sessionList.maps.get(key);
       session.lastMsg = '你 撤回了消息'

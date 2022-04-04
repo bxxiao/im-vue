@@ -96,7 +96,7 @@
           </div>
         </div>
 
-        <div v-if="msg.type === 2 && canCancel(msg)"
+        <div v-if="msg.sendStatus === 0 && msg.type === 2 && canCancel(msg)"
              style="cursor: pointer;color: #8f959e;margin-top: 30px;font-size: 13px;margin-right: 3px"
              @click="doCancel(msg)" >
           撤回
