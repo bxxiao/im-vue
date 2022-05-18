@@ -76,3 +76,8 @@ message MsgCancel {
   int64 toId = 3;
 }
 
+message MsgReceivedAck {
+  int64 uid = 1;
+  string msgId = 2;
+}
+

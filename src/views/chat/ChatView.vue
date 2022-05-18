@@ -276,6 +276,7 @@ export default {
         this.closeRightMenu();
         return;
       }
+      console.log(this.rightClickSession.toId, " ", this.rightClickSession.type)
 
       deleteSession(this.rightClickSession.toId, this.rightClickSession.type).then(result => {
         if (result !== undefined && result.data.code == 200) {

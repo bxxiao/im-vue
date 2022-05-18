@@ -26,6 +26,8 @@ class WsSocket {
     this.reconnectLimit = this.reconnectMax;
     // 启动心跳机制
     this.idleHeartBeat();
+    // 周期性处理消息id缓存
+    this.checkMsgIdCache();
 
     let uid = store.state.userInfo.uid;
     let login = new IMProto.Login();
@@ -89,7 +91,6 @@ class WsSocket {
         break;
       case 5:
         let msgCancel = IMProto.MsgCancel.deserializeBinary(packetData);
-        console.log(msgCancel.getMsgid())
         store.commit('msgCanceled', msgCancel);
         break;
       // pong回应
@@ -175,8 +176,44 @@ class WsSocket {
   //============================send<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   //=======================handler>>>>>>>>>>>>>>>>>>>>>>
+  /*
+  * 缓存收到的消息的id msgId-count
+  * */
+  msgIdCache = new Map();
   handleChatMsg(msg) {
-    store.dispatch('handleChatMsg', msg);
+    // console.log("收到消息：" + msg.getContent())
+    let receivedAck = new IMProto.MsgReceivedAck();
+    receivedAck.setUid(store.state.userInfo.uid);
+    let msgId = msg.getMsgid();
+    receivedAck.setMsgid(msgId);
+    this.sendWS(6, receivedAck);
+
+    // 缓存中没有才进行处理，否则表示之前已经收到过，不进行处理
+    if (!this.msgIdCache.has(msgId)) {
+      store.dispatch('handleChatMsg', msg);
+      this.msgIdCache.set(msgId, 0);
+    }
+  }
+
+  /*
+  * 周期性处理消息id缓存，6个周期后删除掉消息id缓存
+  * */
+  checkMsgIdCache() {
+    let thisRef = this;
+    setTimeout(() => {
+      let remove = [];
+      let increment = [];
+      for (let [key, value] of thisRef.msgIdCache) {
+        if (value == 6)
+          remove.push(key);
+        else
+          increment.push({key, value});
+      }
+
+      remove.forEach(value => thisRef.msgIdCache.delete(value));
+      increment.forEach(item => thisRef.msgIdCache.set(item.key, item.value + 1))
+      thisRef.checkMsgIdCache()
+    }, 4000);
   }
 
   //=======================handler<<<<<<<<<<<<<<<<<<<<
@@ -249,7 +286,7 @@ class WsSocket {
         } else {
           thisRef.inHeartBeating = false;
         }
-      }, 20000)
+      }, 10000)
     };
 
     heartBeating();
@@ -301,7 +338,7 @@ class WsSocket {
       // 重连
       thisRef.initWebSocket();
       // 周期性执行，直到满足终止条件
-      setTimeout(() => reconnectFunc(), 5000);
+      setTimeout(() => reconnectFunc(), 4000);
     };
 
     reconnectFunc();

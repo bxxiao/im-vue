@@ -9,8 +9,9 @@
                :collapse="isCollapse"
                :router="true"
                style="height: 100%;position: relative">
-        <div>
-          <img style="border-radius: 50%;width: 80%;height: 80%;padding: 10%;" :src="$store.state.userInfo.avatar">
+        <div style="">
+          <!--<img style="border-radius: 50%;width: 80%;height: 80%;padding: 10%;" :src="$store.state.userInfo.avatar">-->
+          <Avatar :username="$store.state.userInfo.name" :src="$store.state.userInfo.avatar" :size="50" style="margin: 5px"></Avatar>
           <div style="display: flex;justify-content: center">
             <span style="font-size: 14px;color: white">{{$store.state.userInfo.name}}</span>
           </div>
@@ -43,9 +44,11 @@
 </template>
 
 <script>
+import Avatar from 'vue-avatar'
 
 export default {
   name: "MainLayout",
+  components: {Avatar},
   data() {
     return {
       isCollapse: true

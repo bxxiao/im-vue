@@ -18,6 +18,14 @@ const routes = [
   },
 
   {
+    path: '/registry',
+    component: () => import('../views/auth/Registry'),
+    meta: {
+      title: '注册'
+    }
+  },
+
+  {
     path: '/main',
     component: () => import('../views/MainLayout'),
     children: [

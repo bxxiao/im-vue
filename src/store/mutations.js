@@ -179,6 +179,14 @@ export default {
     // 单聊，则id对应的就是发送者；群聊，则id对应的是群的id，即chatMsg中的toId
     let toId = chatMsg.getType() === 0 ? chatMsg.getFromuid() : chatMsg.getToid();
     let session = state.sessionList.maps.get(type + '-' + toId);
+    let len = state.sessionList.list.length;
+    for (let i = len - 1; i >= 0; i--) {
+      if (state.sessionList.list[i].type === session.type && state.sessionList.list[i].toId === session.toId) {
+        // 从原来位置移除，放在前面
+        state.sessionList.list.splice(i, 1);
+        state.sessionList.list.unshift(session);
+      }
+    }
 
     // 1. 更新会话项
     let lastMsg = chatMsg.getContenttype() == 2 ? '[文件]' : chatMsg.getContent();

@@ -1,16 +1,16 @@
 <template>
   <div class="out-div">
-    <div id="login-form">
+    <div id="registry-form">
       <el-form ref="form" label-width="80px">
         <el-form-item label="电话号码">
-          <el-input clearable v-model="phone" style="width: 400px"></el-input>
+          <el-input placeholder="请输入电话号码" clearable v-model="phone" style="width: 400px"></el-input>
         </el-form-item>
-        <el-form-item label="电话号码">
+        <el-form-item label="密码">
           <el-input placeholder="请输入密码" v-model="password" show-password label="密码" style="width: 400px"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">登录</el-button>
-          <el-button>注册</el-button>
+          <el-button @click="toRegistryPage">注册</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -43,6 +43,10 @@ export default {
           message: '请检测是否连接网络'
         });
       });
+    },
+
+    toRegistryPage() {
+      this.$router.push('/registry')
     }
   },
   mounted() {
@@ -55,7 +59,7 @@ export default {
 </script>
 
 <style scoped>
-#login-form {
+#registry-form {
   position: fixed;
   width: 40%;
   height: 40%;
